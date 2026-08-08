@@ -1,21 +1,4 @@
-#[derive(Debug)]
-pub enum Token {
-    Eof(),
-    Identifier(String),
-    String(String),
-    Colon(),
-    Semicolon(),
-    Lparen(),
-    Rparen(),
-    Star(),
-    Lbrace(),
-    Rbrace(),
-    Extern(),
-    Return(),
-    Fn(),
-    Comma(),
-    Const(),
-}
+use crate::token::*;
 
 pub struct Lexer<'a> {
     code: &'a str,
@@ -27,7 +10,21 @@ impl<'a> Lexer<'a> {
         Self { code, pos: 0 }
     }
 
-    pub fn next(&mut self) -> Token {
+    pub fn tokenize(&mut self) -> TokenStream {
+        let mut stream = TokenStream::default();
+        self.pos = 0;
+        loop {
+            let token = self.next();
+            let eof = matches!(token, Token::Eof);
+            stream.tokens.push(token);
+            if eof {
+                break;
+            }
+        }
+        stream
+    }
+
+    fn next(&mut self) -> Token {
         let mut c: char;
         while {
             c = self.ch();
@@ -55,10 +52,10 @@ impl<'a> Lexer<'a> {
                     };
                 }
 
-                keyword!("extern", Token::Extern());
-                keyword!("fn", Token::Fn());
-                keyword!("return", Token::Return());
-                keyword!("const", Token::Const());
+                keyword!("extern", Token::Extern);
+                keyword!("fn", Token::Fn);
+                keyword!("return", Token::Return);
+                keyword!("const", Token::Const);
 
                 return Token::Identifier(ident);
             } else if c == '"' {
@@ -76,25 +73,29 @@ impl<'a> Lexer<'a> {
 
                 return Token::String(string);
             } else if c == ':' {
-                return Token::Colon();
+                return Token::Colon;
             } else if c == ';' {
-                return Token::Semicolon();
+                return Token::Semicolon;
             } else if c == '(' {
-                return Token::Lparen();
+                return Token::Lparen;
             } else if c == ')' {
-                return Token::Rparen();
+                return Token::Rparen;
             } else if c == '*' {
-                return Token::Star();
+                return Token::Star;
             } else if c == '{' {
-                return Token::Lbrace();
+                return Token::Lbrace;
             } else if c == '}' {
-                return Token::Rbrace();
+                return Token::Rbrace;
             } else if c == ',' {
-                return Token::Comma();
+                return Token::Comma;
+            } else if c == '[' {
+                return Token::Lbracket;
+            } else if c == ']' {
+                return Token::Rbracket;
             }
             assert!(c.is_whitespace(), "Invalid character: {}", c);
         }
-        Token::Eof()
+        Token::Eof
     }
 
     fn ch(&mut self) -> char {

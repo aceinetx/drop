@@ -3,5 +3,20 @@
 version = 4
 
 [[package]]
+name = "dir"
+version = "0.1.0"
+
+[[package]]
 name = "drop"
 version = "0.1.0"
+dependencies = [
+ "dir",
+ "drop-core",
+]
+
+[[package]]
+name = "drop-core"
+version = "0.1.0"
+dependencies = [
+ "dir",
+]
