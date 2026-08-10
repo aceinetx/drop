@@ -1,4 +1,8 @@
-use crate::{IR, function::FunctionId, instruction::InstructionId, table::*};
+use crate::{
+    function::FunctionId,
+    instruction::{InstructionId, InstructionTable},
+    table::*,
+};
 
 #[derive(Debug)]
 pub struct Block {
@@ -8,13 +12,13 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn get_all_instructions(&self, ir: &IR) -> Vec<InstructionId> {
+    pub fn get_all_instructions(&self, table: &InstructionTable) -> Vec<InstructionId> {
         let mut insts = Vec::<InstructionId>::new();
 
         let mut inst_id = Some(self.begin_instruction);
         while let Some(id) = inst_id {
             insts.push(id);
-            inst_id = ir.instruction_table[id].next;
+            inst_id = table[id].next;
         }
 
         insts

@@ -1,13 +1,17 @@
 use crate::codegen::*;
 use crate::parser::{Node, NodeKind};
+use dir::types::TypeId;
 
 impl Codegen {
     fn create_ptr_type(&mut self, underlying: TypeId) -> TypeId {
+        todo!();
+        /*
         let underlying_cid = &self.type_table.get(underlying).unwrap().c_id;
         self.type_table.insert(Type::new(
             TypeKind::Pointer(underlying),
             format!("p{}", underlying_cid),
         ))
+        */
     }
 
     pub(crate) fn resolve_types(&mut self, node: &mut Node) -> Result<(), String> {
@@ -31,42 +35,40 @@ impl Codegen {
             } => {
                 // Resolve return type
                 self.resolve_types(return_type)?;
-                let return_type_id = return_type.resolved_type.unwrap();
-
-                let mut cid = format!("fn_{}", return_type_id);
-
-                // Resolve argument types
-                let mut arg_types = Vec::<TypeId>::new();
-                for (_, node) in args.iter_mut() {
-                    self.resolve_types(node)?;
-                    let id = node.resolved_type.unwrap();
-                    arg_types.push(id);
-
-                    // Add the id to cid
-                    cid.push('_');
-                    cid.push_str(&id.to_string());
-                }
-
-                node.resolved_type = Some(self.type_table.insert(Type::new(
-                    TypeKind::Function {
-                        args: arg_types,
-                        return_type: return_type_id,
-                    },
-                    cid,
-                )));
             }
             NodeKind::TypeRef(name) => {
                 // Match by builtin types first
-                if let Some(id) = self.type_table.get_builtin(name) {
-                    node.resolved_type = Some(id);
+                if name == "u0" {
+                    node.resolved_type = Some(self.ir.get_type_u0());
+                } else if name == "u8" {
+                    node.resolved_type = Some(self.ir.get_type_u8());
+                } else if name == "u16" {
+                    node.resolved_type = Some(self.ir.get_type_u16());
+                } else if name == "u32" {
+                    node.resolved_type = Some(self.ir.get_type_u32());
+                } else if name == "u64" {
+                    node.resolved_type = Some(self.ir.get_type_u64());
+                } else if name == "i8" {
+                    node.resolved_type = Some(self.ir.get_type_i8());
+                } else if name == "i16" {
+                    node.resolved_type = Some(self.ir.get_type_i16());
+                } else if name == "i32" {
+                    node.resolved_type = Some(self.ir.get_type_i32());
+                } else if name == "i64" {
+                    node.resolved_type = Some(self.ir.get_type_i64());
                 }
             }
             NodeKind::TypePtr(underlying) => {
+                todo!();
+                /*
                 self.resolve_types(underlying)?;
                 let underlying_id = underlying.resolved_type.unwrap();
                 node.resolved_type = Some(self.create_ptr_type(underlying_id));
+                */
             }
             NodeKind::TypeConst(underlying) => {
+                todo!();
+                /*
                 self.resolve_types(underlying)?;
                 let underlying_id = underlying.resolved_type.unwrap();
                 let underlying_cid = &self.type_table.get(underlying_id).unwrap().c_id;
@@ -74,8 +76,11 @@ impl Codegen {
                     TypeKind::Const(underlying_id),
                     format!("c{}", underlying_cid),
                 )));
+                */
             }
             NodeKind::TypeSlice(underlying) => {
+                todo!();
+                /*
                 self.resolve_types(underlying)?;
                 let underlying_id = underlying.resolved_type.unwrap();
                 let type_kind = TypeKind::Struct {
@@ -92,6 +97,7 @@ impl Codegen {
                     self.type_table
                         .insert(Type::new(type_kind, format!("s{}", underlying_cid))),
                 );
+                */
             }
             _ => unreachable!(),
         }

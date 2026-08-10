@@ -28,7 +28,7 @@ impl IR {
     fn emit_block(&mut self, id: BlockId) -> Result<String, String> {
         let mut code = format!("_{}:\n", id.get());
 
-        for inst in self.block_table[id].get_all_instructions(self) {
+        for inst in self.block_table[id].get_all_instructions(&self.instruction_table) {
             code += &self.emit_instruction(inst)?;
             code += "\n";
         }
@@ -49,8 +49,8 @@ impl IR {
             function.name
         );
 
-        for block in function.get_all_blocks(self) {
-            for inst in self.block_table[block].get_all_instructions(self) {
+        for block in function.get_all_blocks(&self.block_table) {
+            for inst in self.block_table[block].get_all_instructions(&self.instruction_table) {
                 if let Some(value) = self.instruction_table[inst].out {
                     code.push_str(&self.emit_declaration(&value)?);
                     code.push('\n');
@@ -58,7 +58,7 @@ impl IR {
             }
         }
 
-        for block in function.get_all_blocks(self) {
+        for block in function.get_all_blocks(&self.block_table) {
             code.push_str(&self.emit_block(block)?);
         }
 

@@ -72,6 +72,16 @@ impl<'a> Lexer<'a> {
                 let string = String::from(&self.code[begin..end]);
 
                 return Token::String(string);
+            } else if c.is_numeric() {
+                let mut num = 0i64;
+                while c.is_numeric() {
+                    num *= 10;
+                    num += (c as u8 - '0' as u8) as i64;
+                    c = self.ch();
+                }
+                self.pos -= 1;
+
+                return Token::Number(num);
             } else if c == ':' {
                 return Token::Colon;
             } else if c == ';' {

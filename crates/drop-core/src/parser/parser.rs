@@ -50,10 +50,25 @@ impl Parser {
         }
     }
 
+    fn parse_statement(&mut self) -> ParserResult<Node> {
+        match self.tokens.next() {
+            Token::Return => {
+                let node = self.parse_expr()?;
+                expect_token!(self, Token::Semicolon)?;
+                Ok(Node::new(NodeKind::Return(Box::new(node))))
+            }
+            token => panic!("{:?}", token),
+        }
+    }
+
     fn parse_block(&mut self) -> ParserResult<Node> {
         expect_token!(self, Token::Lbrace)?;
-        while !matches!(self.tokens.next(), Token::Rbrace) {}
-        Ok(Node::new(NodeKind::Block(vec![])))
+        let mut nodes = Vec::<Node>::new();
+        while !matches!(self.tokens.peek(), Token::Rbrace) {
+            nodes.push(self.parse_statement()?);
+        }
+        expect_token!(self, Token::Rbrace)?;
+        Ok(Node::new(NodeKind::Block(nodes)))
     }
 
     fn parse_fn_arguments(&mut self) -> ParserResult<Vec<(String, Node)>> {
@@ -134,10 +149,18 @@ impl Parser {
         Ok(Node::new(kind))
     }
 
+    fn parse_number(&mut self) -> ParserResult<Node> {
+        match self.tokens.next() {
+            Token::Number(num) => Ok(Node::new(NodeKind::Number(*num))),
+            token => Err(format!("expected a number, but found {:?}", token)),
+        }
+    }
+
     fn parse_expr(&mut self) -> ParserResult<Node> {
         match self.tokens.peek() {
             Token::Extern => self.parse_fn(),
             Token::Fn => self.parse_fn(),
+            Token::Number(_) => self.parse_number(),
             _ => todo!(),
         }
     }

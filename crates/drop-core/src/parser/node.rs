@@ -1,4 +1,4 @@
-use crate::codegen::TypeId;
+use dir::types::TypeId;
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -20,6 +20,8 @@ pub enum NodeKind {
     TypeConst(Box<Node>),
     TypeSlice(Box<Node>),
     Block(Vec<Node>),
+    Number(i64),
+    Return(Box<Node>),
 }
 
 #[derive(Debug)]

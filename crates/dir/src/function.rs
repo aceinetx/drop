@@ -1,4 +1,8 @@
-use crate::{IR, block::BlockId, table::*, types::TypeId};
+use crate::{
+    block::{BlockId, BlockTable},
+    table::*,
+    types::TypeId,
+};
 
 #[derive(Debug)]
 pub struct Function {
@@ -8,13 +12,13 @@ pub struct Function {
 }
 
 impl Function {
-    pub fn get_all_blocks(&self, ir: &IR) -> Vec<BlockId> {
+    pub fn get_all_blocks(&self, table: &BlockTable) -> Vec<BlockId> {
         let mut blocks = Vec::<BlockId>::new();
 
         let mut block_id = Some(self.block_id);
         while let Some(id) = block_id {
             blocks.push(id);
-            block_id = ir.block_table[id].next;
+            block_id = table[id].next;
         }
 
         blocks

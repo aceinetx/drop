@@ -17,6 +17,7 @@ pub enum Token {
     Const,
     Lbracket,
     Rbracket,
+    Number(i64),
 }
 
 #[derive(Default)]
