@@ -2,7 +2,7 @@ use drop_core::codegen::*;
 use drop_core::lexer::*;
 use drop_core::parser::*;
 
-fn main() {
+fn main() -> Result<(), String> {
     let code = r#"
 main :: fn () i32 {
     return 123;
@@ -11,14 +11,9 @@ main :: fn () i32 {
     let tokens = Lexer::new(code).tokenize();
 
     let mut parser = Parser::new(tokens);
-    match parser.parse() {
-        Ok(node) => {
-            let mut codegen = Codegen::new(node);
-            match codegen.generate() {
-                Ok(_) => println!("ok"),
-                Err(e) => println!("Codegen error: {}", e),
-            }
-        }
-        Err(e) => println!("Parse error: {}", e),
-    }
+    let node = parser.parse()?;
+    let mut codegen = Codegen::new(node);
+    codegen.generate()?;
+
+    Ok(())
 }
