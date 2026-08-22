@@ -80,6 +80,14 @@ impl IR {
             crate::types::Type::I16 => Ok(format!("typedef int16_t {};", name)),
             crate::types::Type::I32 => Ok(format!("typedef int32_t {};", name)),
             crate::types::Type::I64 => Ok(format!("typedef int64_t {};", name)),
+            crate::types::Type::Tuple(types) => {
+                let mut sb = String::from("typedef struct{");
+                for (i, id) in types.iter().enumerate() {
+                    sb += &format!("{} _{};", id.get_c_id(), i);
+                }
+                sb += &format!("}}{};", name);
+                Ok(sb)
+            }
             _ => todo!(),
         }
     }

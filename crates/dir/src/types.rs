@@ -12,7 +12,7 @@ pub enum Type {
     I32,
     I64,
     Pointer(TypeId),
-    Structure(Vec<TypeId>),
+    Tuple(Vec<TypeId>),
 }
 
 impl Type {

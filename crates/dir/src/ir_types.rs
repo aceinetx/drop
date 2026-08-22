@@ -1,4 +1,7 @@
-use crate::{IR, types::TypeId};
+use crate::{
+    IR,
+    types::{Type, TypeId},
+};
 
 impl IR {
     pub fn get_type_u0(&self) -> TypeId {
@@ -35,5 +38,9 @@ impl IR {
 
     pub fn get_type_i64(&self) -> TypeId {
         self.type_i64
+    }
+
+    pub fn create_tuple(&mut self, types: Vec<TypeId>) -> TypeId {
+        self.type_table.insert(Type::Tuple(types))
     }
 }
