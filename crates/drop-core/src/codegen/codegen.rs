@@ -24,17 +24,16 @@ impl Codegen {
                 }
                 Ok(None)
             }
-            NodeKind::CompAssign { name, value } => self.build(&value),
             NodeKind::FunctionDef {
                 is_extern,
-                extern_name,
+                name,
                 args,
                 return_type,
                 body,
             } => {
                 _ = self
                     .ir
-                    .create_function("main", return_type.resolved_type.unwrap());
+                    .create_function(name, return_type.resolved_type.unwrap());
                 let body = body.as_ref().unwrap();
                 self.build(body)
             }

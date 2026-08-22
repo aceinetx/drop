@@ -1,4 +1,4 @@
-main :: fn () i32 {
+fn main () i32 {
     y := x;
     x: s32 = 0;
     return x;

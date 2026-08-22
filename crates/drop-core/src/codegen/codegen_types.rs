@@ -28,7 +28,7 @@ impl Codegen {
             }
             NodeKind::FunctionDef {
                 is_extern: _,
-                extern_name: _,
+                name: _,
                 args,
                 return_type,
                 body: _,

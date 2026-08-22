@@ -10,7 +10,7 @@ pub enum NodeKind {
     },
     FunctionDef {
         is_extern: bool,
-        extern_name: String,
+        name: String,
         args: Vec<(String, Node)>,
         return_type: Box<Node>,
         body: Option<Box<Node>>,

@@ -101,30 +101,25 @@ impl Parser {
     }
 
     fn parse_fn(&mut self) -> ParserResult<Node> {
-        let is_extern: bool;
-        let extern_name: String;
-        match self.tokens.next() {
+        let is_extern = match self.tokens.next() {
             Token::Extern => {
-                is_extern = true;
                 expect_token!(self, Token::Fn)?;
-                extern_name = match self.tokens.next() {
-                    Token::Identifier(name) => name.clone(),
-                    token => {
-                        return Err(format!("expected extern name, but found {:?}", token));
-                    }
-                };
+                true
             }
-            Token::Fn => {
-                is_extern = false;
-                extern_name = String::new();
-            }
+            Token::Fn => false,
             token => {
                 return Err(format!(
                     "expected extern or fn in function definition, but found {:?}",
                     token
                 ));
             }
-        }
+        };
+        let name = match self.tokens.next() {
+            Token::Identifier(name) => name.clone(),
+            token => {
+                return Err(format!("expected extern name, but found {:?}", token));
+            }
+        };
 
         expect_token!(self, Token::Lparen)?;
         let args = self.parse_fn_arguments()?;
@@ -140,7 +135,7 @@ impl Parser {
 
         let kind = NodeKind::FunctionDef {
             is_extern,
-            extern_name,
+            name,
             args,
             return_type,
             body,
@@ -158,24 +153,13 @@ impl Parser {
 
     fn parse_expr(&mut self) -> ParserResult<Node> {
         match self.tokens.peek() {
-            Token::Extern => self.parse_fn(),
-            Token::Fn => self.parse_fn(),
             Token::Number(_) => self.parse_number(),
             _ => todo!(),
         }
     }
 
     fn parse_tld(&mut self) -> ParserResult<Node> {
-        let name = match self.tokens.next() {
-            Token::Identifier(name) => name.clone(),
-            token => return Err(format!("expected identifier in tld, but found {:?}", token)),
-        };
-        expect_token!(self, Token::Colon)?;
-        expect_token!(self, Token::Colon)?;
-        let value = Box::new(self.parse_expr()?);
-
-        let node = Node::new(NodeKind::CompAssign { name, value });
-        Ok(node)
+        self.parse_fn()
     }
 
     pub fn parse(&mut self) -> ParserResult<Node> {
