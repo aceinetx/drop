@@ -4,3 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+drop-util = { version = "0.1.0", path = "../drop-util" }

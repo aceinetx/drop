@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 dir = { path = "../dir" }
+drop-util = { version = "0.1.0", path = "../drop-util" }
