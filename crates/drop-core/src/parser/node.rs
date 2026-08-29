@@ -4,10 +4,6 @@ use dir::types::TypeId;
 pub enum NodeKind {
     None,
     Root(Vec<Node>),
-    CompAssign {
-        name: String,
-        value: Box<Node>,
-    },
     FunctionDef {
         is_extern: bool,
         name: String,

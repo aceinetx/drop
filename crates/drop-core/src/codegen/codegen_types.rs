@@ -23,18 +23,29 @@ impl Codegen {
                     self.resolve_types(node)?;
                 }
             }
-            NodeKind::CompAssign { name: _, value } => {
+            NodeKind::Number(_) => {
+                node.resolved_type = Some(self.ir.get_type_i64());
+            }
+            NodeKind::Return(value) => {
                 self.resolve_types(value)?;
+            }
+            NodeKind::Block(nodes) => {
+                for node in nodes.iter_mut() {
+                    self.resolve_types(node)?;
+                }
             }
             NodeKind::FunctionDef {
                 is_extern: _,
                 name: _,
                 args,
                 return_type,
-                body: _,
+                body,
             } => {
                 // Resolve return type
                 self.resolve_types(return_type)?;
+                if let Some(body) = body {
+                    self.resolve_types(body)?;
+                }
             }
             NodeKind::TypeRef(name) => {
                 // Match by builtin types first
@@ -99,7 +110,7 @@ impl Codegen {
                 );
                 */
             }
-            _ => unreachable!(),
+            other => unreachable!("{:?}", other),
         }
         Ok(())
     }

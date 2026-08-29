@@ -49,7 +49,7 @@ impl Codegen {
                 Ok(None)
             }
             NodeKind::Number(value) => Ok(Some(
-                self.ir.constant_signed(self.ir.get_type_i64(), *value),
+                self.ir.constant_signed(node.resolved_type.unwrap(), *value),
             )),
             kind => todo!("{:?}", kind),
         }

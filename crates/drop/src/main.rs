@@ -1,7 +1,6 @@
 use drop_core::codegen::*;
 use drop_core::lexer::*;
 use drop_core::parser::*;
-use drop_util::Maybe;
 
 fn main() -> Result<(), String> {
     let code = r#"
@@ -20,10 +19,6 @@ fn main () i32 {
     println!("{:#?}", node);
     let mut codegen = Codegen::new(node);
     codegen.generate()?;
-
-    let opt = Maybe::<i32>::Nothing;
-    println!("{}", *opt);
-    println!("{}", *opt);
 
     Ok(())
 }
