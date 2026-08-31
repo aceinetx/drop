@@ -102,6 +102,12 @@ impl<'a> Lexer<'a> {
                 return Token::Lbracket;
             } else if c == ']' {
                 return Token::Rbracket;
+            } else if c == '+' {
+                return Token::Plus;
+            } else if c == '-' {
+                return Token::Minus;
+            } else if c == '/' {
+                return Token::Div;
             }
             assert!(c.is_whitespace(), "Invalid character: {}", c);
         }

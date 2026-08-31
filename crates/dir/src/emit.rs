@@ -22,6 +22,30 @@ impl IR {
             InstructionKind::ConstantUnsigned(value) => {
                 Ok(format!("_{}={value};", inst.out.unwrap().id))
             }
+            InstructionKind::Add(left, right) => Ok(format!(
+                "_{}=_{}+_{};",
+                inst.out.unwrap().id,
+                left.id,
+                right.id
+            )),
+            InstructionKind::Sub(left, right) => Ok(format!(
+                "_{}=_{}-_{};",
+                inst.out.unwrap().id,
+                left.id,
+                right.id
+            )),
+            InstructionKind::Mul(left, right) => Ok(format!(
+                "_{}=_{}*_{};",
+                inst.out.unwrap().id,
+                left.id,
+                right.id
+            )),
+            InstructionKind::Div(left, right) => Ok(format!(
+                "_{}=_{}/_{};",
+                inst.out.unwrap().id,
+                left.id,
+                right.id
+            )),
         }
     }
 

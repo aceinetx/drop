@@ -4,8 +4,8 @@ use drop_core::parser::*;
 
 fn main() -> Result<(), String> {
     let code = r#"
-fn add () i32 {
-    return 0;
+fn add (x: i32, y: i32) i32 {
+    return 2 + 2 * 2;
 }
 
 fn main () i32 {

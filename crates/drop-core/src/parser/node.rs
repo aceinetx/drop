@@ -1,6 +1,14 @@
 use dir::types::TypeId;
 
 #[derive(Debug)]
+pub enum BinopKind {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
+
+#[derive(Debug)]
 pub enum NodeKind {
     None,
     Root(Vec<Node>),
@@ -18,6 +26,8 @@ pub enum NodeKind {
     Block(Vec<Node>),
     Number(i64),
     Return(Box<Node>),
+    VarRef(String),
+    Binop(Box<Node>, BinopKind, Box<Node>),
 }
 
 #[derive(Debug)]

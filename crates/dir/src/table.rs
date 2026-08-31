@@ -30,6 +30,12 @@ impl<T> Clone for TableId<T> {
 
 impl<T> Copy for TableId<T> {}
 
+impl<T> PartialEq for TableId<T> {
+    fn eq(&self, other: &Self) -> bool {
+        return self.id == other.id;
+    }
+}
+
 #[derive(Debug)]
 pub struct Table<T> {
     instructions: Vec<T>,

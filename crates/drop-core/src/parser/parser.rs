@@ -1,5 +1,5 @@
 use crate::{
-    parser::{Node, NodeKind, ParserResult},
+    parser::{BinopKind, Node, NodeKind, ParserResult},
     token::{Token, TokenIterator, TokenStream},
 };
 
@@ -144,18 +144,67 @@ impl Parser {
         Ok(Node::new(kind))
     }
 
-    fn parse_number(&mut self) -> ParserResult<Node> {
+    fn parse_primary(&mut self) -> ParserResult<Node> {
         match self.tokens.next() {
             Token::Number(num) => Ok(Node::new(NodeKind::Number(*num))),
-            token => Err(format!("expected a number, but found {:?}", token)),
+            Token::Identifier(ident) => Ok(Node::new(NodeKind::VarRef(ident.clone()))),
+            token => Err(format!(
+                "expected a number or identifier, but found {:?}",
+                token
+            )),
+        }
+    }
+
+    fn parse_multiplicative(&mut self) -> ParserResult<Node> {
+        let mut lhs = self.parse_primary()?;
+
+        loop {
+            lhs = match self.tokens.peek() {
+                Token::Star => {
+                    self.tokens.next();
+
+                    let rhs = Box::new(self.parse_primary()?);
+
+                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Mul, rhs))
+                }
+                Token::Div => {
+                    self.tokens.next();
+
+                    let rhs = Box::new(self.parse_primary()?);
+
+                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Div, rhs))
+                }
+                _ => return Ok(lhs),
+            };
+        }
+    }
+
+    fn parse_additive(&mut self) -> ParserResult<Node> {
+        let mut lhs = self.parse_multiplicative()?;
+
+        loop {
+            lhs = match self.tokens.peek() {
+                Token::Plus => {
+                    self.tokens.next();
+
+                    let rhs = Box::new(self.parse_multiplicative()?);
+
+                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Add, rhs))
+                }
+                Token::Minus => {
+                    self.tokens.next();
+
+                    let rhs = Box::new(self.parse_multiplicative()?);
+
+                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Sub, rhs))
+                }
+                _ => return Ok(lhs),
+            };
         }
     }
 
     fn parse_expr(&mut self) -> ParserResult<Node> {
-        match self.tokens.peek() {
-            Token::Number(_) => self.parse_number(),
-            _ => todo!(),
-        }
+        self.parse_additive()
     }
 
     fn parse_tld(&mut self) -> ParserResult<Node> {

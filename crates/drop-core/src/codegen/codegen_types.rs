@@ -26,6 +26,15 @@ impl Codegen {
             NodeKind::Number(_) => {
                 node.resolved_type = Some(self.ir.get_type_i64());
             }
+            NodeKind::Binop(left, _, right) => {
+                self.resolve_types(left)?;
+                self.resolve_types(right)?;
+                if left.resolved_type.unwrap() != right.resolved_type.unwrap() {
+                    return Err("types of binary operation don't match".into());
+                }
+
+                node.resolved_type = left.resolved_type;
+            }
             NodeKind::Return(value) => {
                 self.resolve_types(value)?;
             }

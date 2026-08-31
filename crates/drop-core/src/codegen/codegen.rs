@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::parser::{Node, NodeKind};
+use crate::parser::{BinopKind, Node, NodeKind};
 use dir::{IR, value::*};
 
 pub struct Codegen {
@@ -47,6 +47,17 @@ impl Codegen {
                 let value = self.build(value)?;
                 self.ir.ret(value);
                 Ok(None)
+            }
+            NodeKind::Binop(left, op, right) => {
+                let lv = self.build(left)?.unwrap();
+                let rv = self.build(right)?.unwrap();
+
+                Ok(Some(match op {
+                    BinopKind::Add => self.ir.add(lv, rv),
+                    BinopKind::Sub => self.ir.sub(lv, rv),
+                    BinopKind::Mul => self.ir.mul(lv, rv),
+                    BinopKind::Div => self.ir.div(lv, rv),
+                }))
             }
             NodeKind::Number(value) => Ok(Some(
                 self.ir.constant_signed(node.resolved_type.unwrap(), *value),

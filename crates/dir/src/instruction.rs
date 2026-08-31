@@ -6,6 +6,10 @@ pub enum InstructionKind {
     Ret(Option<Value>),
     ConstantSigned(i64),
     ConstantUnsigned(u64),
+    Add(Value, Value),
+    Sub(Value, Value),
+    Mul(Value, Value),
+    Div(Value, Value),
 }
 
 #[derive(Debug)]

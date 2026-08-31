@@ -18,6 +18,10 @@ pub enum Token {
     Lbracket,
     Rbracket,
     Number(i64),
+    Plus,
+    Minus,
+    Div,
+    Mul,
 }
 
 #[derive(Default)]
