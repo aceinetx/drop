@@ -91,7 +91,7 @@ impl IR {
         Ok(code)
     }
 
-    fn emit_type(&mut self, id: TypeId) -> Result<String, String> {
+    fn emit_type(&self, id: TypeId) -> Result<String, String> {
         let ty = &self.type_table[id];
         let name = id.get_c_id();
         match ty {
@@ -104,6 +104,10 @@ impl IR {
             crate::types::Type::I16 => Ok(format!("typedef int16_t {};", name)),
             crate::types::Type::I32 => Ok(format!("typedef int32_t {};", name)),
             crate::types::Type::I64 => Ok(format!("typedef int64_t {};", name)),
+            crate::types::Type::Pointer(to) => Ok(format!("typedef {} *{};", to.get_c_id(), name)),
+            crate::types::Type::Const(to) => {
+                Ok(format!("typedef const {} {};", to.get_c_id(), name))
+            }
             crate::types::Type::Tuple(types) => {
                 let mut sb = String::from("typedef struct{");
                 for (i, id) in types.iter().enumerate() {
@@ -112,7 +116,6 @@ impl IR {
                 sb += &format!("}}{};", name);
                 Ok(sb)
             }
-            _ => todo!(),
         }
     }
 
