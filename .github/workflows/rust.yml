@@ -1,0 +1,40 @@
+name: Rust tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/**'
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/**'
+      
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Download rust toolchain
+        run: |
+          rustup default stable
+
+      - name: Build & run tests
+        run: |
+          cargo build
+          cargo test

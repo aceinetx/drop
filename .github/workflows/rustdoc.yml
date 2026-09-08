@@ -1,0 +1,66 @@
+name: Rust docs
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/**'
+  pull_request:
+    branches:
+      - 'master'
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/**'
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+          
+      - name: Download rust toolchain
+        run: |
+          rustup default stable
+
+      - name: Build documentation
+        run: |
+          cargo build
+          cargo doc --document-private-items
+          mkdir docs
+          echo '<meta http-equiv="refresh" content="0;url=drop/index.html">' > target/doc/index.html
+          cp target/doc/* ./docs -r
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs/'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
