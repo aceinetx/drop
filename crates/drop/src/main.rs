@@ -1,18 +1,17 @@
+use std::env;
+use std::fs;
+
 use drop_core::codegen::*;
 use drop_core::lexer::*;
 use drop_core::parser::*;
 
 fn main() -> Result<(), String> {
-    let code = r#"
-fn add (x: i32, y: i32) i32 {
-    return 2 + 2 * 2;
-}
+    let args: Vec<String> = env::args().collect();
+    let filename = &args[1];
 
-fn main () i32 {
-    return 123;
-}
-        "#;
-    let tokens = Lexer::new(code).tokenize();
+    let code = fs::read_to_string(filename).map_err(|e| e.to_string())?;
+
+    let tokens = Lexer::new(&code).tokenize();
 
     let mut parser = Parser::new(tokens);
     let node = parser.parse()?;

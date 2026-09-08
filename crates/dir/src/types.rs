@@ -1,6 +1,6 @@
 use crate::table::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Type {
     U0,
     U8,
@@ -12,6 +12,7 @@ pub enum Type {
     I32,
     I64,
     Pointer(TypeId),
+    Const(TypeId),
     Tuple(Vec<TypeId>),
 }
 

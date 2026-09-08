@@ -119,7 +119,7 @@ impl Codegen {
                 );
                 */
             }
-            other => unreachable!("{:?}", other),
+            other => unreachable!("{:#?}", other),
         }
         Ok(())
     }

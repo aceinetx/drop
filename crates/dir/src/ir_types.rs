@@ -40,7 +40,30 @@ impl IR {
         self.type_i64
     }
 
-    pub fn create_tuple(&mut self, types: Vec<TypeId>) -> TypeId {
+    fn insert_reused_type(&mut self, insert_type: Type) -> TypeId {
+        for id in self.type_table.all() {
+            let ty = &self.type_table[id];
+            if *ty == insert_type {
+                return id;
+            }
+        }
+
+        self.type_table.insert(insert_type)
+    }
+
+    pub fn create_tuple_struct_like(&mut self, types: Vec<TypeId>) -> TypeId {
         self.type_table.insert(Type::Tuple(types))
+    }
+
+    pub fn create_tuple(&mut self, types: Vec<TypeId>) -> TypeId {
+        self.insert_reused_type(Type::Tuple(types))
+    }
+
+    pub fn create_ptr(&mut self, to: TypeId) -> TypeId {
+        self.insert_reused_type(Type::Pointer(to))
+    }
+
+    pub fn create_const(&mut self, to: TypeId) -> TypeId {
+        self.insert_reused_type(Type::Const(to))
     }
 }

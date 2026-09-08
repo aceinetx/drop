@@ -27,7 +27,9 @@ pub enum NodeKind {
     Number(i64),
     Return(Box<Node>),
     VarRef(String),
+    String(String),
     Binop(Box<Node>, BinopKind, Box<Node>),
+    Call(Box<Node>, Vec<Node>),
 }
 
 #[derive(Debug)]

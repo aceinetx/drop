@@ -11,6 +11,7 @@ macro_rules! expect_token {
     ($self:expr, $tok:pat) => {{
         let tok = $self.tokens.next();
         if !matches!(tok, $tok) {
+            dbg!("err here");
             Err(format!(
                 "expected {}, but found {:?}",
                 stringify!($tok),
@@ -148,6 +149,7 @@ impl Parser {
         match self.tokens.next() {
             Token::Number(num) => Ok(Node::new(NodeKind::Number(*num))),
             Token::Identifier(ident) => Ok(Node::new(NodeKind::VarRef(ident.clone()))),
+            Token::String(str) => Ok(Node::new(NodeKind::String(str.clone()))),
             token => Err(format!(
                 "expected a number or identifier, but found {:?}",
                 token
@@ -155,22 +157,62 @@ impl Parser {
         }
     }
 
+    fn parse_fn_call_arguments(&mut self) -> ParserResult<Vec<Node>> {
+        match self.tokens.peek() {
+            Token::Rparen => {
+                _ = self.tokens.next();
+                Ok(vec![])
+            }
+            _ => {
+                let mut vec = vec![self.parse_expr()?];
+                match self.tokens.next() {
+                    Token::Comma => {
+                        vec.append(&mut self.parse_fn_call_arguments()?);
+                        Ok(vec)
+                    }
+                    Token::Rparen => Ok(vec),
+                    token => Err(format!(
+                        "expected semicolon or rparen, but found {:?}",
+                        token
+                    )),
+                }
+            }
+        }
+    }
+
+    fn parse_postfix(&mut self) -> ParserResult<Node> {
+        let mut node = self.parse_primary()?;
+
+        match self.tokens.peek() {
+            Token::Lparen => {
+                _ = self.tokens.next();
+                node = Node::new(NodeKind::Call(
+                    Box::new(node),
+                    self.parse_fn_call_arguments()?,
+                ))
+            }
+            _ => (),
+        }
+
+        Ok(node)
+    }
+
     fn parse_multiplicative(&mut self) -> ParserResult<Node> {
-        let mut lhs = self.parse_primary()?;
+        let mut lhs = self.parse_postfix()?;
 
         loop {
             lhs = match self.tokens.peek() {
                 Token::Star => {
                     self.tokens.next();
 
-                    let rhs = Box::new(self.parse_primary()?);
+                    let rhs = Box::new(self.parse_postfix()?);
 
                     Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Mul, rhs))
                 }
                 Token::Div => {
                     self.tokens.next();
 
-                    let rhs = Box::new(self.parse_primary()?);
+                    let rhs = Box::new(self.parse_postfix()?);
 
                     Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Div, rhs))
                 }

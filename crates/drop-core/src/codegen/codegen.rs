@@ -62,7 +62,7 @@ impl Codegen {
             NodeKind::Number(value) => Ok(Some(
                 self.ir.constant_signed(node.resolved_type.unwrap(), *value),
             )),
-            kind => todo!("{:?}", kind),
+            kind => todo!("{:#?}", kind),
         }
     }
 
