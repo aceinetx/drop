@@ -47,13 +47,13 @@ fn test_const_type_reuse() {
 #[test]
 fn test_tuple_type_reuse() {
     let mut ir = IR::default();
-    let tuple_1 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()]);
-    let tuple_2 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()]);
-    let tuple_3 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()]);
+    let tuple_1 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()], true);
+    let tuple_2 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()], true);
+    let tuple_3 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u8()], true);
 
     assert_eq!(tuple_1, tuple_2);
     assert_eq!(tuple_2, tuple_3);
 
-    let tuple_3 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u16()]);
+    let tuple_3 = ir.create_tuple(vec![ir.get_type_u8(), ir.get_type_u16()], true);
     assert_ne!(tuple_1, tuple_3);
 }

@@ -51,12 +51,29 @@ impl IR {
         self.type_table.insert(insert_type)
     }
 
-    pub fn create_tuple_struct_like(&mut self, types: Vec<TypeId>) -> TypeId {
-        self.type_table.insert(Type::Tuple(types))
+    fn verify_tuple_has_no_void(&self, tuple: &Type) -> bool {
+        if let Type::Tuple(tuple) = tuple {
+            for id in tuple.iter() {
+                let ty = &self.type_table[*id];
+                if matches!(ty, Type::U0) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
-    pub fn create_tuple(&mut self, types: Vec<TypeId>) -> TypeId {
-        self.insert_reused_type(Type::Tuple(types))
+    pub fn create_tuple(&mut self, types: Vec<TypeId>, reuse: bool) -> TypeId {
+        let tuple = Type::Tuple(types);
+        assert!(
+            self.verify_tuple_has_no_void(&tuple),
+            "A tuple must not contain a U0 field"
+        );
+        if reuse {
+            self.insert_reused_type(tuple)
+        } else {
+            self.type_table.insert(tuple)
+        }
     }
 
     pub fn create_ptr(&mut self, to: TypeId) -> TypeId {
