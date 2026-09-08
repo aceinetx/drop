@@ -19,9 +19,11 @@ impl IR {
                 Ok(format!("_{}={value};", inst.out.unwrap().id))
             }
 
-            InstructionKind::ConstantUnsigned(value) => {
-                Ok(format!("_{}={value};", inst.out.unwrap().id))
-            }
+            InstructionKind::ConstantUnsigned(value) => Ok(format!(
+                "_{}=({}){value};",
+                inst.out.unwrap().id,
+                inst.out.unwrap().ty.get_c_id(),
+            )),
             InstructionKind::Add(left, right) => Ok(format!(
                 "_{}=_{}+_{};",
                 inst.out.unwrap().id,

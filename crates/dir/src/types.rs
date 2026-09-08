@@ -27,6 +27,10 @@ impl Type {
         }
     }
 
+    pub fn is_ptr(&self) -> bool {
+        matches!(self, Type::Pointer(_))
+    }
+
     pub fn is_signed_int(&self) -> bool {
         match self {
             Type::I8 => true,

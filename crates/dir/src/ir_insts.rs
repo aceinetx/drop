@@ -20,8 +20,8 @@ impl IR {
     pub fn constant_unsigned(&mut self, type_id: TypeId, value: u64) -> Value {
         let ty = &self.type_table[type_id];
         assert!(
-            ty.is_unsigned_int(),
-            "constant_unsigned function requires type to be an unsigned integer"
+            ty.is_unsigned_int() || ty.is_ptr(),
+            "constant_unsigned function requires type to be an unsigned integer or a pointer"
         );
 
         let out = Value::new(self.get_next_value_id(), type_id);

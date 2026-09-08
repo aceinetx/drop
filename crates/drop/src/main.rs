@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 
+use dir::IR;
 use drop_core::codegen::*;
 use drop_core::lexer::*;
 use drop_core::parser::*;
