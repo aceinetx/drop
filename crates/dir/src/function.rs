@@ -1,8 +1,8 @@
 use crate::{
     block::{BlockId, BlockTable},
-    table::*,
     types::TypeId,
 };
+use drop_util::table::*;
 
 #[derive(Debug)]
 pub struct Function {

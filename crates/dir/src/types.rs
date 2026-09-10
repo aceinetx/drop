@@ -1,4 +1,4 @@
-use crate::table::*;
+use drop_util::table::*;
 
 #[derive(Debug, PartialEq)]
 pub enum Type {
@@ -18,13 +18,7 @@ pub enum Type {
 
 impl Type {
     pub fn is_unsigned_int(&self) -> bool {
-        match self {
-            Type::U8 => true,
-            Type::U16 => true,
-            Type::U32 => true,
-            Type::U64 => true,
-            _ => false,
-        }
+        matches!(self, Type::U8 | Type::U16 | Type::U32 | Type::U64)
     }
 
     pub fn is_ptr(&self) -> bool {
@@ -32,21 +26,13 @@ impl Type {
     }
 
     pub fn is_signed_int(&self) -> bool {
-        match self {
-            Type::I8 => true,
-            Type::I16 => true,
-            Type::I32 => true,
-            Type::I64 => true,
-            _ => false,
-        }
+        matches!(self, Type::I8 | Type::I16 | Type::I32 | Type::I64)
     }
 }
 
 pub type TypeTable = Table<Type>;
 pub type TypeId = TableId<Type>;
 
-impl TypeId {
-    pub fn get_c_id(&self) -> String {
-        format!("dir_ty_{}", self.get())
-    }
+pub fn type_id_get_c_id(type_id: TypeId) -> String {
+    format!("dir_ty_{}", type_id.get())
 }

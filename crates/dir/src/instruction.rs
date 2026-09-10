@@ -1,4 +1,5 @@
-use crate::{block::BlockId, table::*, value::Value};
+use crate::{block::BlockId, value::Value};
+use drop_util::table::*;
 
 #[derive(Debug)]
 pub enum InstructionKind {

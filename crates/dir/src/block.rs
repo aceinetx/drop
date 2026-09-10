@@ -1,8 +1,8 @@
 use crate::{
     function::FunctionId,
     instruction::{InstructionId, InstructionTable},
-    table::*,
 };
+use drop_util::table::*;
 
 #[derive(Debug)]
 pub struct Block {

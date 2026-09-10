@@ -183,6 +183,7 @@ impl Parser {
     fn parse_postfix(&mut self) -> ParserResult<Node> {
         let mut node = self.parse_primary()?;
 
+        #[allow(clippy::single_match)]
         match self.tokens.peek() {
             Token::Lparen => {
                 _ = self.tokens.next();

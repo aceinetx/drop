@@ -76,7 +76,7 @@ impl<'a> Lexer<'a> {
                 let mut num = 0i64;
                 while c.is_numeric() {
                     num *= 10;
-                    num += (c as u8 - '0' as u8) as i64;
+                    num += (c as u8 - b'0') as i64;
                     c = self.ch();
                 }
                 self.pos -= 1;

@@ -7,6 +7,5 @@ pub use ir::*;
 pub mod block;
 pub mod function;
 pub mod instruction;
-pub mod table;
 pub mod types;
 pub mod value;

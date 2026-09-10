@@ -1,5 +1,10 @@
 use crate::{
-    IR, block::BlockId, function::FunctionId, instruction::*, types::TypeId, value::Value,
+    IR,
+    block::BlockId,
+    function::FunctionId,
+    instruction::*,
+    types::{TypeId, type_id_get_c_id},
+    value::Value,
 };
 use std::io;
 
@@ -22,7 +27,7 @@ impl IR {
             InstructionKind::ConstantUnsigned(value) => Ok(format!(
                 "_{}=({}){value};",
                 inst.out.unwrap().id,
-                inst.out.unwrap().ty.get_c_id(),
+                type_id_get_c_id(inst.out.unwrap().ty),
             )),
             InstructionKind::Add(left, right) => Ok(format!(
                 "_{}=_{}+_{};",
@@ -63,7 +68,8 @@ impl IR {
     }
 
     fn emit_declaration(&self, value: &Value) -> Result<String, String> {
-        Ok(format!("{} _{};", value.ty.get_c_id(), value.id))
+        //Ok(format!("{} _{};", value.ty.get_c_id(), value.id))
+        Ok(format!("{} _{};", type_id_get_c_id(value.ty), value.id))
     }
 
     fn emit_function(&mut self, id: FunctionId) -> Result<String, String> {
@@ -71,7 +77,7 @@ impl IR {
 
         let mut code = format!(
             "{} {}(){{\n",
-            function.return_type.get_c_id(),
+            type_id_get_c_id(function.return_type),
             function.name
         );
 
@@ -95,7 +101,7 @@ impl IR {
 
     fn emit_type(&self, id: TypeId) -> Result<String, String> {
         let ty = &self.type_table[id];
-        let name = id.get_c_id();
+        let name = type_id_get_c_id(id);
         match ty {
             crate::types::Type::U0 => Ok(format!("typedef void {};", name)),
             crate::types::Type::U8 => Ok(format!("typedef uint8_t {};", name)),
@@ -106,14 +112,16 @@ impl IR {
             crate::types::Type::I16 => Ok(format!("typedef int16_t {};", name)),
             crate::types::Type::I32 => Ok(format!("typedef int32_t {};", name)),
             crate::types::Type::I64 => Ok(format!("typedef int64_t {};", name)),
-            crate::types::Type::Pointer(to) => Ok(format!("typedef {} *{};", to.get_c_id(), name)),
+            crate::types::Type::Pointer(to) => {
+                Ok(format!("typedef {} *{};", type_id_get_c_id(*to), name))
+            }
             crate::types::Type::Const(to) => {
-                Ok(format!("typedef const {} {};", to.get_c_id(), name))
+                Ok(format!("typedef const {} {};", type_id_get_c_id(*to), name))
             }
             crate::types::Type::Tuple(types) => {
                 let mut sb = String::from("typedef struct{");
                 for (i, id) in types.iter().enumerate() {
-                    sb += &format!("{} _{};", id.get_c_id(), i);
+                    sb += &format!("{} _{};", type_id_get_c_id(*id), i);
                 }
                 sb += &format!("}}{};", name);
                 Ok(sb)
