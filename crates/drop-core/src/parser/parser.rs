@@ -1,15 +1,16 @@
 use crate::{
     parser::{BinopKind, Node, NodeKind, ParserResult},
-    token::{Token, TokenIterator, TokenStream},
+    token::Token,
 };
 
-pub struct Parser {
-    tokens: TokenStream,
+struct Parser<'a> {
+    tokens: &'a Vec<Token>,
+    token_index: usize,
 }
 
 macro_rules! expect_token {
     ($self:expr, $tok:pat) => {{
-        let tok = $self.tokens.next();
+        let tok = $self.next_token();
         if !matches!(tok, $tok) {
             dbg!("err here");
             Err(format!(
@@ -23,13 +24,26 @@ macro_rules! expect_token {
     }};
 }
 
-impl Parser {
-    pub fn new(tokens: TokenStream) -> Self {
-        Self { tokens }
+impl<'a> Parser<'a> {
+    pub fn new(tokens: &'a Vec<Token>) -> Self {
+        Self {
+            tokens,
+            token_index: 0,
+        }
+    }
+
+    fn next_token(&mut self) -> &Token {
+        let token = self.tokens.get(self.token_index).unwrap_or(&Token::Eof);
+        self.token_index += 1;
+        token
+    }
+
+    fn peek_token(&mut self) -> &Token {
+        self.tokens.get(self.token_index).unwrap_or(&Token::Eof)
     }
 
     fn parse_type(&mut self) -> ParserResult<Node> {
-        match self.tokens.next() {
+        match self.next_token() {
             Token::Identifier(name) => Ok(Node::new(NodeKind::TypeRef(name.clone()))),
             Token::Star => {
                 let underlying = Box::new(self.parse_type()?);
@@ -52,7 +66,7 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> ParserResult<Node> {
-        match self.tokens.next() {
+        match self.next_token() {
             Token::Return => {
                 let node = self.parse_expr()?;
                 expect_token!(self, Token::Semicolon)?;
@@ -65,7 +79,7 @@ impl Parser {
     fn parse_block(&mut self) -> ParserResult<Node> {
         expect_token!(self, Token::Lbrace)?;
         let mut nodes = Vec::<Node>::new();
-        while !matches!(self.tokens.peek(), Token::Rbrace) {
+        while !matches!(self.peek_token(), Token::Rbrace) {
             nodes.push(self.parse_statement()?);
         }
         expect_token!(self, Token::Rbrace)?;
@@ -73,7 +87,7 @@ impl Parser {
     }
 
     fn parse_fn_arguments(&mut self) -> ParserResult<Vec<(String, Node)>> {
-        match self.tokens.next() {
+        match self.next_token() {
             Token::Rparen => Ok(vec![]),
             Token::Identifier(name) => {
                 let name = name.clone();
@@ -82,7 +96,7 @@ impl Parser {
                 let arg_type = self.parse_type()?;
                 let mut vec = vec![(name, arg_type)];
 
-                match self.tokens.next() {
+                match self.next_token() {
                     Token::Rparen => Ok(vec),
                     Token::Comma => {
                         vec.append(&mut self.parse_fn_arguments()?);
@@ -102,7 +116,7 @@ impl Parser {
     }
 
     fn parse_fn(&mut self) -> ParserResult<Node> {
-        let is_extern = match self.tokens.next() {
+        let is_extern = match self.next_token() {
             Token::Extern => {
                 expect_token!(self, Token::Fn)?;
                 true
@@ -115,7 +129,7 @@ impl Parser {
                 ));
             }
         };
-        let name = match self.tokens.next() {
+        let name = match self.next_token() {
             Token::Identifier(name) => name.clone(),
             token => {
                 return Err(format!("expected extern name, but found {:?}", token));
@@ -146,7 +160,7 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> ParserResult<Node> {
-        match self.tokens.next() {
+        match self.next_token() {
             Token::Number(num) => Ok(Node::new(NodeKind::Number(*num))),
             Token::Identifier(ident) => Ok(Node::new(NodeKind::VarRef(ident.clone()))),
             Token::String(str) => Ok(Node::new(NodeKind::String(str.clone()))),
@@ -158,14 +172,14 @@ impl Parser {
     }
 
     fn parse_fn_call_arguments(&mut self) -> ParserResult<Vec<Node>> {
-        match self.tokens.peek() {
+        match self.peek_token() {
             Token::Rparen => {
-                _ = self.tokens.next();
+                _ = self.next_token();
                 Ok(vec![])
             }
             _ => {
                 let mut vec = vec![self.parse_expr()?];
-                match self.tokens.next() {
+                match self.next_token() {
                     Token::Comma => {
                         vec.append(&mut self.parse_fn_call_arguments()?);
                         Ok(vec)
@@ -184,9 +198,9 @@ impl Parser {
         let mut node = self.parse_primary()?;
 
         #[allow(clippy::single_match)]
-        match self.tokens.peek() {
+        match self.peek_token() {
             Token::Lparen => {
-                _ = self.tokens.next();
+                _ = self.next_token();
                 node = Node::new(NodeKind::Call(
                     Box::new(node),
                     self.parse_fn_call_arguments()?,
@@ -202,16 +216,16 @@ impl Parser {
         let mut lhs = self.parse_postfix()?;
 
         loop {
-            lhs = match self.tokens.peek() {
+            lhs = match self.peek_token() {
                 Token::Star => {
-                    self.tokens.next();
+                    self.next_token();
 
                     let rhs = Box::new(self.parse_postfix()?);
 
                     Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Mul, rhs))
                 }
                 Token::Div => {
-                    self.tokens.next();
+                    self.next_token();
 
                     let rhs = Box::new(self.parse_postfix()?);
 
@@ -226,16 +240,16 @@ impl Parser {
         let mut lhs = self.parse_multiplicative()?;
 
         loop {
-            lhs = match self.tokens.peek() {
+            lhs = match self.peek_token() {
                 Token::Plus => {
-                    self.tokens.next();
+                    self.next_token();
 
                     let rhs = Box::new(self.parse_multiplicative()?);
 
                     Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Add, rhs))
                 }
                 Token::Minus => {
-                    self.tokens.next();
+                    self.next_token();
 
                     let rhs = Box::new(self.parse_multiplicative()?);
 
@@ -255,13 +269,19 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> ParserResult<Node> {
+        self.token_index = 0;
         let mut nodes = Vec::<Node>::new();
         loop {
-            match self.tokens.peek() {
+            match self.peek_token() {
                 Token::Eof => break,
                 _ => nodes.push(self.parse_tld()?),
             }
         }
         Ok(Node::new(NodeKind::Root(nodes)))
     }
+}
+
+pub fn parse(tokens: &Vec<Token>) -> ParserResult<Node> {
+    let mut parser = Parser::new(tokens);
+    parser.parse()
 }

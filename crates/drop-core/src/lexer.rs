@@ -1,6 +1,6 @@
 use crate::token::*;
 
-pub struct Lexer<'a> {
+struct Lexer<'a> {
     code: &'a str,
     pos: usize,
 }
@@ -10,18 +10,18 @@ impl<'a> Lexer<'a> {
         Self { code, pos: 0 }
     }
 
-    pub fn tokenize(&mut self) -> TokenStream {
-        let mut stream = TokenStream::default();
+    pub fn tokenize(&mut self) -> Vec<Token> {
+        let mut tokens = Vec::<Token>::new();
         self.pos = 0;
         loop {
             let token = self.next();
             let eof = matches!(token, Token::Eof);
-            stream.tokens.push(token);
+            tokens.push(token);
             if eof {
                 break;
             }
         }
-        stream
+        tokens
     }
 
     fn next(&mut self) -> Token {
@@ -119,4 +119,9 @@ impl<'a> Lexer<'a> {
         self.pos += 1;
         c
     }
+}
+
+pub fn tokenize(code: &str) -> Vec<Token> {
+    let mut lexer = Lexer::new(code);
+    lexer.tokenize()
 }

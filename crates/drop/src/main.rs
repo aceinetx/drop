@@ -11,10 +11,9 @@ fn main() -> Result<(), String> {
 
     let code = fs::read_to_string(filename).map_err(|e| e.to_string())?;
 
-    let tokens = Lexer::new(&code).tokenize();
+    let tokens = tokenize(&code);
 
-    let mut parser = Parser::new(tokens);
-    let node = parser.parse()?;
+    let node = parse(&tokens)?;
     println!("{:#?}", node);
     let mut codegen = Codegen::new(node);
     codegen.generate()?;
