@@ -119,7 +119,8 @@ impl Codegen {
                 );
                 */
             }
-            other => unreachable!("{:#?}", other),
+            NodeKind::Import(_) => (),
+            other => unimplemented!("{:#?}", other),
         }
         Ok(())
     }

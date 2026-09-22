@@ -22,4 +22,5 @@ pub enum Token {
     Minus,
     Div,
     Mul,
+    Directive(String),
 }

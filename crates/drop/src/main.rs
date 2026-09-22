@@ -1,22 +1,15 @@
 use std::env;
-use std::fs;
+use std::path::PathBuf;
 
 use drop_core::codegen::*;
-use drop_core::lexer::*;
-use drop_core::parser::*;
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
+    let filename = std::fs::canonicalize(PathBuf::from(filename)).map_err(|e| e.to_string())?;
+    let mut codegen = Codegen::create_from_path(filename)?;
 
-    let code = fs::read_to_string(filename).map_err(|e| e.to_string())?;
-
-    let tokens = tokenize(&code);
-
-    let node = parse(&tokens)?;
-    println!("{:#?}", node);
-    let mut codegen = Codegen::new(node);
-    codegen.generate()?;
+    codegen.generate(true)?;
 
     Ok(())
 }

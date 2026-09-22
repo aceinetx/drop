@@ -264,8 +264,45 @@ impl<'a> Parser<'a> {
         self.parse_additive()
     }
 
+    fn parse_directive(&mut self) -> ParserResult<Node> {
+        let directive = match self.next_token() {
+            Token::Directive(v) => v,
+            token => return Err(format!("expected a directive, but found {:?}", token)),
+        };
+
+        match directive.as_str() {
+            "import" => {
+                let file = match self.next_token() {
+                    Token::String(v) => v.clone(),
+                    token => {
+                        return Err(format!(
+                            "expected a string as the filename for import, but found a {:?}",
+                            token
+                        ));
+                    }
+                };
+
+                expect_token!(self, Token::Semicolon)?;
+
+                Ok(Node::new(NodeKind::Import(file)))
+            }
+            directive => Err(format!(
+                "unknown directive: {}, valid directives are: import",
+                directive
+            )),
+        }
+    }
+
     fn parse_tld(&mut self) -> ParserResult<Node> {
-        self.parse_fn()
+        match self.peek_token() {
+            Token::Fn => self.parse_fn(),
+            Token::Extern => self.parse_fn(),
+            Token::Directive(_) => self.parse_directive(),
+            token => Err(format!(
+                "expected a top level token: fn | extern | directive, but found {:?}",
+                token
+            )),
+        }
     }
 
     pub fn parse(&mut self) -> ParserResult<Node> {

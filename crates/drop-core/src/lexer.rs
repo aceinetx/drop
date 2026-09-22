@@ -108,6 +108,23 @@ impl<'a> Lexer<'a> {
                 return Token::Minus;
             } else if c == '/' {
                 return Token::Div;
+            } else if c == '#' {
+                self.pos += 1;
+
+                let begin = self.pos - 1;
+                let mut end = self.pos;
+
+                while {
+                    c = self.ch();
+                    c.is_alphanumeric()
+                } {
+                    end = self.pos;
+                }
+                self.pos -= 1;
+
+                let ident = String::from(&self.code[begin..end]);
+
+                return Token::Directive(ident);
             }
             assert!(c.is_whitespace(), "Invalid character: {}", c);
         }

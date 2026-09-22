@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use dir::types::TypeId;
 
 #[derive(Debug)]
@@ -30,6 +32,7 @@ pub enum NodeKind {
     String(String),
     Binop(Box<Node>, BinopKind, Box<Node>),
     Call(Box<Node>, Vec<Node>),
+    Import(String),
 }
 
 #[derive(Debug)]

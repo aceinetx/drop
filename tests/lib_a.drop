@@ -1,3 +1,5 @@
+#import "lib_main";
+
 fn add () i32 {
 	return 123;
 }
