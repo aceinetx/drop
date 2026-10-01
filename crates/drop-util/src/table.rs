@@ -1,4 +1,5 @@
 use std::{
+    fmt::Display,
     marker::PhantomData,
     ops::{Index, IndexMut},
 };
@@ -7,6 +8,12 @@ use std::{
 pub struct TableId<T> {
     id: usize,
     __phantom_data: PhantomData<T>,
+}
+
+impl<T> Display for TableId<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.id.fmt(f)
+    }
 }
 
 impl<T> TableId<T> {

@@ -36,7 +36,7 @@ impl<'a> Lexer<'a> {
 
                 while {
                     c = self.ch();
-                    c.is_alphanumeric()
+                    c.is_alphanumeric() || c == '_'
                 } {
                     end = self.pos;
                 }
