@@ -1,5 +1,5 @@
 use crate::{
-    parser::{BinopKind, Node, NodeKind, ParserResult},
+    parser::{BinopKind, Node, ParserResult},
     token::Token,
 };
 
@@ -44,19 +44,19 @@ impl<'a> Parser<'a> {
 
     fn parse_type(&mut self) -> ParserResult<Node> {
         match self.next_token() {
-            Token::Identifier(name) => Ok(Node::new(NodeKind::TypeRef(name.clone()))),
+            Token::Identifier(name) => Ok(Node::TypeRef(name.clone())),
             Token::Star => {
                 let underlying = Box::new(self.parse_type()?);
-                Ok(Node::new(NodeKind::TypePtr(underlying)))
+                Ok(Node::TypePtr(underlying))
             }
             Token::Const => {
                 let underlying = Box::new(self.parse_type()?);
-                Ok(Node::new(NodeKind::TypeConst(underlying)))
+                Ok(Node::TypeConst(underlying))
             }
             Token::Lbracket => {
                 expect_token!(self, Token::Rbracket)?;
                 let underlying = Box::new(self.parse_type()?);
-                Ok(Node::new(NodeKind::TypeSlice(underlying)))
+                Ok(Node::TypeSlice(underlying))
             }
             token => Err(format!(
                 "expected identifier, '*' or const in a type, but found {:?}",
@@ -70,7 +70,7 @@ impl<'a> Parser<'a> {
             Token::Return => {
                 let node = self.parse_expr()?;
                 expect_token!(self, Token::Semicolon)?;
-                Ok(Node::new(NodeKind::Return(Box::new(node))))
+                Ok(Node::Return(Box::new(node)))
             }
             token => panic!("{:?}", token),
         }
@@ -83,7 +83,7 @@ impl<'a> Parser<'a> {
             nodes.push(self.parse_statement()?);
         }
         expect_token!(self, Token::Rbrace)?;
-        Ok(Node::new(NodeKind::Block(nodes)))
+        Ok(Node::Block(nodes))
     }
 
     fn parse_fn_arguments(&mut self) -> ParserResult<Vec<(String, Node)>> {
@@ -148,22 +148,20 @@ impl<'a> Parser<'a> {
             Some(Box::new(self.parse_block()?))
         };
 
-        let kind = NodeKind::FunctionDef {
+        Ok(Node::FunctionDef {
             is_extern,
             name,
             args,
             return_type,
             body,
-        };
-
-        Ok(Node::new(kind))
+        })
     }
 
     fn parse_primary(&mut self) -> ParserResult<Node> {
         match self.next_token() {
-            Token::Number(num) => Ok(Node::new(NodeKind::Number(*num))),
-            Token::Identifier(ident) => Ok(Node::new(NodeKind::VarRef(ident.clone()))),
-            Token::String(str) => Ok(Node::new(NodeKind::String(str.clone()))),
+            Token::Number(num) => Ok(Node::Number(*num)),
+            Token::Identifier(ident) => Ok(Node::VarRef(ident.clone())),
+            Token::String(str) => Ok(Node::String(str.clone())),
             token => Err(format!(
                 "expected a number or identifier, but found {:?}",
                 token
@@ -201,10 +199,7 @@ impl<'a> Parser<'a> {
         match self.peek_token() {
             Token::Lparen => {
                 _ = self.next_token();
-                node = Node::new(NodeKind::Call(
-                    Box::new(node),
-                    self.parse_fn_call_arguments()?,
-                ))
+                node = Node::Call(Box::new(node), self.parse_fn_call_arguments()?)
             }
             _ => (),
         }
@@ -222,14 +217,14 @@ impl<'a> Parser<'a> {
 
                     let rhs = Box::new(self.parse_postfix()?);
 
-                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Mul, rhs))
+                    Node::Binop(Box::new(lhs), BinopKind::Mul, rhs)
                 }
                 Token::Div => {
                     self.next_token();
 
                     let rhs = Box::new(self.parse_postfix()?);
 
-                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Div, rhs))
+                    Node::Binop(Box::new(lhs), BinopKind::Div, rhs)
                 }
                 _ => return Ok(lhs),
             };
@@ -246,14 +241,14 @@ impl<'a> Parser<'a> {
 
                     let rhs = Box::new(self.parse_multiplicative()?);
 
-                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Add, rhs))
+                    Node::Binop(Box::new(lhs), BinopKind::Add, rhs)
                 }
                 Token::Minus => {
                     self.next_token();
 
                     let rhs = Box::new(self.parse_multiplicative()?);
 
-                    Node::new(NodeKind::Binop(Box::new(lhs), BinopKind::Sub, rhs))
+                    Node::Binop(Box::new(lhs), BinopKind::Sub, rhs)
                 }
                 _ => return Ok(lhs),
             };
@@ -284,7 +279,7 @@ impl<'a> Parser<'a> {
 
                 expect_token!(self, Token::Semicolon)?;
 
-                Ok(Node::new(NodeKind::Import(file)))
+                Ok(Node::Import(file))
             }
             directive => Err(format!(
                 "unknown directive: {}, valid directives are: import",
@@ -314,7 +309,7 @@ impl<'a> Parser<'a> {
                 _ => nodes.push(self.parse_tld()?),
             }
         }
-        Ok(Node::new(NodeKind::Root(nodes)))
+        Ok(Node::Root(nodes))
     }
 }
 

@@ -1,7 +1,3 @@
-use std::path::PathBuf;
-
-use dir::types::TypeId;
-
 #[derive(Debug)]
 pub enum BinopKind {
     Add,
@@ -11,7 +7,7 @@ pub enum BinopKind {
 }
 
 #[derive(Debug)]
-pub enum NodeKind {
+pub enum Node {
     None,
     Root(Vec<Node>),
     FunctionDef {
@@ -33,25 +29,4 @@ pub enum NodeKind {
     Binop(Box<Node>, BinopKind, Box<Node>),
     Call(Box<Node>, Vec<Node>),
     Import(String),
-}
-
-#[derive(Debug)]
-pub struct Node {
-    pub node: NodeKind,
-    pub resolved_type: Option<TypeId>,
-}
-
-impl Node {
-    pub fn new(node: NodeKind) -> Self {
-        Self {
-            node,
-            resolved_type: None,
-        }
-    }
-}
-
-impl Default for Node {
-    fn default() -> Self {
-        Self::new(NodeKind::None)
-    }
 }
