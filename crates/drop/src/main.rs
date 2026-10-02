@@ -48,11 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut options = Options::default();
 
-    loop {
-        let Some(arg) = args.pop_front() else {
-            break;
-        };
-
+    while let Some(arg) = args.pop_front() {
         match arg.as_str() {
             "-print-tokens" => {
                 options.print_tokens = true;
