@@ -1,6 +1,6 @@
 use crate::{
     parser::{BinopKind, Node},
-    udir::instruction::{Coerce, Func, Index, Instruction, Ref},
+    udir::instruction::{Coerce, Func, Instruction, Ref},
 };
 use drop_util::table::Table;
 
