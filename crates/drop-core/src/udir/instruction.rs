@@ -1,7 +1,5 @@
 use drop_util::table::TableId;
 
-pub type Index = TableId<Instruction>;
-
 #[derive(Debug)]
 pub enum Instruction {
     Func(Func),
@@ -13,6 +11,8 @@ pub enum Instruction {
     Sub(Ref, Ref),
     Mul(Ref, Ref),
 }
+
+pub type Index = TableId<Instruction>;
 
 #[derive(Debug)]
 pub enum Ref {

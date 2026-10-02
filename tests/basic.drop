@@ -1,5 +1,5 @@
 fn sixty_nine () i32 {
-	return 23 * 3;
+	return 69;
 }
 
 fn main () i32 {

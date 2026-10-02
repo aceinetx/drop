@@ -32,7 +32,7 @@ fn run_compiler(options: &Options) -> Result<(), Box<dyn Error>> {
         print!("\x1b[35m");
         println!("{:#?}", udir);
     }
-    let tdir = tdir::generate(&udir);
+    let tdir = tdir::generate(&udir).unwrap();
     if options.print_tdir {
         print!("\x1b[96m");
         println!("{:#?}", tdir);

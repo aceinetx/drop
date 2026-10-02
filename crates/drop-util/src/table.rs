@@ -62,6 +62,10 @@ impl<T> Table<T> {
     pub fn all(&self) -> Vec<TableId<T>> {
         (0..self.items.len()).map(|x| TableId::new(x)).collect()
     }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, T> {
+        self.items.iter()
+    }
 }
 
 impl<T> Default for Table<T> {
