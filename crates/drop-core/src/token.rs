@@ -23,4 +23,6 @@ pub enum Token {
     Div,
     Mul,
     Directive(String),
+    FatArrow,
+    Eq,
 }

@@ -102,6 +102,13 @@ impl<'a> Lexer<'a> {
                 return Token::Lbracket;
             } else if c == ']' {
                 return Token::Rbracket;
+            } else if c == '=' {
+                return if self.ch() == '>' {
+                    Token::FatArrow
+                } else {
+                    self.pos -= 1;
+                    Token::Eq
+                };
             } else if c == '+' {
                 return Token::Plus;
             } else if c == '-' {

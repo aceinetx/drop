@@ -42,6 +42,10 @@ impl<'a> Parser<'a> {
         self.tokens.get(self.token_index).unwrap_or(&Token::Eof)
     }
 
+    fn consume_token(&mut self) {
+        _ = self.next_token();
+    }
+
     fn parse_type(&mut self) -> ParserResult<Node> {
         match self.next_token() {
             Token::Identifier(name) => Ok(Node::TypeRef(name.clone())),
@@ -77,13 +81,22 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_block(&mut self) -> ParserResult<Node> {
-        expect_token!(self, Token::Lbrace)?;
-        let mut nodes = Vec::<Node>::new();
-        while !matches!(self.peek_token(), Token::Rbrace) {
-            nodes.push(self.parse_statement()?);
+        match self.peek_token() {
+            Token::FatArrow => {
+                self.consume_token();
+                self.parse_statement()
+            }
+            Token::Lbrace => {
+                self.consume_token();
+                let mut nodes = Vec::<Node>::new();
+                while !matches!(self.peek_token(), Token::Rbrace) {
+                    nodes.push(self.parse_statement()?);
+                }
+                expect_token!(self, Token::Rbrace)?;
+                Ok(Node::Block(nodes))
+            }
+            token => Err(format!("expected '{{' or '=>', but found {:?}", token)),
         }
-        expect_token!(self, Token::Rbrace)?;
-        Ok(Node::Block(nodes))
     }
 
     fn parse_fn_arguments(&mut self) -> ParserResult<Vec<(String, Node)>> {

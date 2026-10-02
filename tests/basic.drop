@@ -1,6 +1,4 @@
-fn sixty_nine () i32 {
-	return 69;
-}
+fn sixty_nine () i32 => return 69;
 
 fn main () i32 {
 	return 0;
