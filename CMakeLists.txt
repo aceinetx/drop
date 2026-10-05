@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.10)
+project(drop)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+
+add_executable(drop ${SOURCES})
