@@ -30,9 +30,15 @@ void drop::Tokens::dump() {
   }
   puts("- tokens:");
   for (usize i = 0; i < tokens.items.len; i++) {
-    auto tag = (usize)tokens.items[i].tag;
-    auto name = token_type_names[tag];
-    printf("%5zu = %02zu %.*s\n", i, tag, (s32)name.len, name.ptr);
+    auto tag = tokens.items[i].tag;
+    auto data = tokens.items[i].data;
+    auto name = token_type_names[(usize)tag];
+    printf("%5zu = %02zu %.*s ", i, (usize)tag, (s32)name.len, name.ptr);
+    if (tag == TokenType::Identifier || tag == TokenType::String) {
+      auto string = strings.items[data.string];
+      printf("%.*s", (s32)string.len, string.ptr);
+    }
+    putchar('\n');
   }
 }
 
