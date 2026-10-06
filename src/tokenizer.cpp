@@ -2,6 +2,10 @@
 #include <cctype>
 #include <cstdio>
 
+#define X(ident) drop::strlit(#ident),
+drop::string drop::token_type_names[] = {XTokenTypes};
+#undef X
+
 // #region Tokens
 
 drop::Tokens drop::Tokens::init() {
@@ -26,7 +30,9 @@ void drop::Tokens::dump() {
   }
   puts("- tokens:");
   for (usize i = 0; i < tokens.items.len; i++) {
-    printf("%5zu = %zu\n", i, (usize)tokens.items[i].tag);
+    auto tag = (usize)tokens.items[i].tag;
+    auto name = token_type_names[tag];
+    printf("%5zu = %02zu %.*s\n", i, tag, (s32)name.len, name.ptr);
   }
 }
 
@@ -77,10 +83,17 @@ drop::Token drop::Tokenizer::_next() {
       usize len = end - start;
 
       string s = {code.ptr + start, len};
-      s = s.dupe();
-      tokens.strings.append(s);
 
-      Token token = {TokenType::Identifier, {tokens.strings.items.len - 1}};
+#define keyword(keyw, type)                                                    \
+  if (s.compare(strlit(keyw)))                                                 \
+    return { type, {0} }
+      keyword("extern", TokenType::Extern);
+      keyword("return", TokenType::Return);
+      keyword("fn", TokenType::Fn);
+      keyword("const", TokenType::Const);
+
+      size_t i = tokens.strings.append(s.dupe());
+      Token token = {TokenType::Identifier, {i}};
       return token;
     } else if (c == '"') {
       ch();
@@ -101,6 +114,33 @@ drop::Token drop::Tokenizer::_next() {
       return token;
     } else if (isspace(c)) {
       ch();
+#define symbol(sym, type)                                                      \
+  }                                                                            \
+  else if (c == sym) {                                                         \
+    ch();                                                                      \
+    return { type, {0} }
+      symbol(':', TokenType::Colon);
+      symbol(';', TokenType::Semicolon);
+      symbol('(', TokenType::Lparen);
+      symbol(')', TokenType::Rparen);
+      symbol('*', TokenType::Star);
+      symbol('{', TokenType::Lbrace);
+      symbol('}', TokenType::Rbrace);
+      symbol(',', TokenType::Comma);
+      symbol('[', TokenType::Lbracket);
+      symbol(']', TokenType::Rbracket);
+      symbol('+', TokenType::Plus);
+      symbol('-', TokenType::Minus);
+      symbol('*', TokenType::Mul);
+      symbol('/', TokenType::Div);
+    } else if (c == '=') {
+      ch();
+      if (pch() == '>') {
+        ch();
+        return {TokenType::FatArrow, {0}};
+      } else {
+        return {TokenType::Eq, {0}};
+      }
     } else {
       assert(0 && "unknown char");
     }

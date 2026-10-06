@@ -20,7 +20,7 @@ template <typename T> struct List {
     *this = init();
   }
 
-  void append(T item) {
+  usize append(T item) {
     if (this->items.len >= this->capacity) {
       size_t new_capacity = this->capacity * 1.5;
       if (this->capacity == 0)
@@ -33,7 +33,9 @@ template <typename T> struct List {
       this->items.len = len;
     }
 
-    this->items[this->items.len++] = item;
+    size_t i = this->items.len++;
+    this->items[i] = item;
+    return i;
   }
 
   T pop() {

@@ -3,33 +3,38 @@
 #include "string.h"
 
 namespace drop {
-enum class TokenType {
-  Eof,
-  Identifier,
-  String,
-  Colon,
-  Semicolon,
-  Lparen,
-  Rparen,
-  Star,
-  Lbrace,
-  Rbrace,
-  Extern,
-  Return,
-  Fn,
-  Comma,
-  Const,
-  Lbracket,
-  Rbracket,
-  Number,
-  Plus,
-  Minus,
-  Mul,
-  Div,
-  Directive,
-  FatArrow,
-  Eq,
-};
+#define XTokenTypes                                                            \
+  X(Eof)                                                                       \
+  X(Identifier)                                                                \
+  X(String)                                                                    \
+  X(Colon)                                                                     \
+  X(Semicolon)                                                                 \
+  X(Lparen)                                                                    \
+  X(Rparen)                                                                    \
+  X(Star)                                                                      \
+  X(Lbrace)                                                                    \
+  X(Rbrace)                                                                    \
+  X(Extern)                                                                    \
+  X(Return)                                                                    \
+  X(Fn)                                                                        \
+  X(Comma)                                                                     \
+  X(Const)                                                                     \
+  X(Lbracket)                                                                  \
+  X(Rbracket)                                                                  \
+  X(Number)                                                                    \
+  X(Plus)                                                                      \
+  X(Minus)                                                                     \
+  X(Mul)                                                                       \
+  X(Div)                                                                       \
+  X(Directive)                                                                 \
+  X(FatArrow)                                                                  \
+  X(Eq)
+
+#define X(ident) ident,
+enum class TokenType { XTokenTypes };
+#undef X
+
+extern string token_type_names[];
 
 union TokenData {
   usize string;

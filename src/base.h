@@ -14,6 +14,8 @@ using s32 = int32_t;
 using s64 = int64_t;
 using usize = size_t;
 
+#define drop_min(x, y) ((x) < (y) ? (x) : (y))
+
 // trap
 #if defined(_MSC_VER)
 #include <intrin.h>
