@@ -34,9 +34,18 @@ void drop::Tokens::dump() {
     auto data = tokens.items[i].data;
     auto name = token_type_names[(usize)tag];
     printf("%5zu = %02zu %.*s ", i, (usize)tag, (s32)name.len, name.ptr);
-    if (tag == TokenType::Identifier || tag == TokenType::String) {
+
+    switch (tag) {
+    case TokenType::Identifier:
+    case TokenType::String: {
       auto string = strings.items[data.string];
       printf("%.*s", (s32)string.len, string.ptr);
+    } break;
+    case TokenType::Number:
+      printf("%ld", data.number);
+      break;
+    default:
+      break;
     }
     putchar('\n');
   }

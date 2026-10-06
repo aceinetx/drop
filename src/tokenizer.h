@@ -31,7 +31,7 @@ namespace drop {
   X(Eq)
 
 #define X(ident) ident,
-enum class TokenType { XTokenTypes };
+enum class TokenType : u8 { XTokenTypes };
 #undef X
 
 extern string token_type_names[];
