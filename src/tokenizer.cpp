@@ -44,6 +44,8 @@ void drop::Tokens::dump() {
     case TokenType::Number:
       printf("%ld", data.number);
       break;
+    case TokenType::Unknown:
+      putchar(data.ch);
     default:
       break;
     }
@@ -90,7 +92,7 @@ drop::Token drop::Tokenizer::_next() {
     if (isalpha(c)) {
       usize start = this->pos;
 
-      while (isalnum(pch())) {
+      while (isident(pch())) {
         ch();
       }
 
@@ -156,8 +158,18 @@ drop::Token drop::Tokenizer::_next() {
       } else {
         return {TokenType::Eq, {0}};
       }
+    } else if (isdigit(c)) {
+      s64 number = 0;
+
+      while (isdigit(pch())) {
+        number *= 10;
+        number += ch() - '0';
+      }
+
+      return Token::make_number(number);
     } else {
-      assert(0 && "unknown char");
+      ch();
+      return Token::make_unknown(c);
     }
   }
   return {TokenType::Eof, {0}};

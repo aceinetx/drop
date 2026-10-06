@@ -5,6 +5,7 @@
 namespace drop {
 #define XTokenTypes                                                            \
   X(Eof)                                                                       \
+  X(Unknown)                                                                   \
   X(Identifier)                                                                \
   X(String)                                                                    \
   X(Colon)                                                                     \
@@ -39,11 +40,24 @@ extern string token_type_names[];
 union TokenData {
   usize string;
   s64 number;
+  u8 ch;
 };
 
 struct Token {
   TokenType tag;
   TokenData data;
+
+  static Token make_number(s64 number) {
+    Token token = {TokenType::Number, {0}};
+    token.data.number = number;
+    return token;
+  }
+
+  static Token make_unknown(u8 ch) {
+    Token token = {TokenType::Unknown, {0}};
+    token.data.ch = ch;
+    return token;
+  }
 };
 
 struct Tokens {
