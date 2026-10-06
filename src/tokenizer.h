@@ -1,6 +1,6 @@
 #pragma once
-#include "base.h"
 #include "list.h"
+#include "string.h"
 
 namespace drop {
 enum class TokenType {

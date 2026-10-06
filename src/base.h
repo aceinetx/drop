@@ -1,5 +1,4 @@
 #pragma once
-#include "slice.h"
 #include <cstdint>
 #include <cstring>
 
@@ -14,10 +13,6 @@ using s16 = int16_t;
 using s32 = int32_t;
 using s64 = int64_t;
 using usize = size_t;
-
-using string = slice<u8>;
-
-inline string strlit(const char *s) { return string{(u8 *)s, strlen(s)}; }
 
 // trap
 #if defined(_MSC_VER)

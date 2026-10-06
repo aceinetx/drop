@@ -11,7 +11,7 @@ template <typename T> T *create() {
 }
 
 template <typename T> slice<T> alloc(size_t len) {
-  T *ptr = malloc(sizeof(T) * len);
+  T *ptr = (T *)malloc(sizeof(T) * len);
   assert(ptr && "malloc failed");
   return {ptr, len};
 }

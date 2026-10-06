@@ -1,4 +1,5 @@
 #include "tokenizer.h"
+#include <cctype>
 #include <cstdio>
 
 // #region Tokens
