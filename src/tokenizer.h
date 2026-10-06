@@ -1,4 +1,6 @@
 #pragma once
+#include "base.h"
+#include "list.h"
 
 namespace drop {
 enum class TokenType {
@@ -29,9 +31,36 @@ enum class TokenType {
   Eq,
 };
 
-union TokenData {};
+union TokenData {
+  string string;
+  s64 number;
+};
 
-struct Token {};
+struct Token {
+  TokenType tag;
+  TokenData data;
+};
 
-struct Tokenizer {};
+struct Tokenizer {
+  string code;
+  size_t pos;
+  List<Token> tokens;
+
+  static Tokenizer init(string code) {
+    Tokenizer self = {
+        code,
+        0,
+        List<Token>::init(),
+    };
+    return self;
+  }
+
+  Token next() {}
+};
+
+List<Token> tokenize(string code) {
+  auto tokenizer = Tokenizer::init(code);
+  Token token;
+  return tokenizer;
+}
 } // namespace drop
