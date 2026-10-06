@@ -2,6 +2,7 @@
 #include "base.h"
 #include <cassert>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 
 namespace drop {
@@ -10,7 +11,13 @@ template <typename T> struct slice {
   size_t len;
 
   T &operator[](size_t i) {
-    assert(i < len);
+    if (i > len) {
+      fprintf(
+          stderr,
+          "internal error: out of bounds slice access: (slice of [%zu])[%zu]\n",
+          i, len);
+      drop_trap();
+    }
     return ptr[i];
   }
 

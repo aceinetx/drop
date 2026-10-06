@@ -16,7 +16,7 @@ drop::Tokens drop::Tokens::init() {
 }
 
 void drop::Tokens::deinit() {
-  tokens.deinit();
+  list.deinit();
   for (usize i = 0; i < strings.items.len; i++)
     free(strings.items[i]);
   strings.deinit();
@@ -29,17 +29,17 @@ void drop::Tokens::dump() {
     printf("%5zu = %.*s\n", i, (s32)strings.items[i].len, strings.items[i].ptr);
   }
   puts("- tokens:");
-  for (usize i = 0; i < tokens.items.len; i++) {
-    auto tag = tokens.items[i].tag;
-    auto data = tokens.items[i].data;
+  for (usize i = 0; i < list.items.len; i++) {
+    auto tag = list.items[i].tag;
+    auto data = list.items[i].data;
     auto name = token_type_names[(usize)tag];
-    printf("%5zu = %02zu %.*s ", i, (usize)tag, (s32)name.len, name.ptr);
+    printf("%5zu = %02zu %-15.*s ", i, (usize)tag, (s32)name.len, name.ptr);
 
     switch (tag) {
     case TokenType::Identifier:
     case TokenType::String: {
       auto string = strings.items[data.string];
-      printf("%.*s", (s32)string.len, string.ptr);
+      printf("[string at %zu: %.*s]", data.string, (s32)string.len, string.ptr);
     } break;
     case TokenType::Number:
       printf("%ld", data.number);
@@ -82,7 +82,7 @@ void drop::Tokenizer::tokenize() {
   Token token;
   do {
     token = _next();
-    tokens.tokens.append(token);
+    tokens.list.append(token);
   } while (token.tag != TokenType::Eof);
 }
 

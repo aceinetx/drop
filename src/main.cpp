@@ -1,3 +1,4 @@
+#include "parser.h"
 #include "tokenizer.h"
 
 int main() {
@@ -14,5 +15,11 @@ fn main () i32 {
 )");
   auto tokens = drop::tokenize(code);
   tokens.dump();
+
+  auto ast = drop::parse(&tokens);
   tokens.deinit();
+
+  ast.dump();
+
+  ast.deinit();
 }
