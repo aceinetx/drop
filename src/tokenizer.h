@@ -32,7 +32,7 @@ enum class TokenType {
 };
 
 union TokenData {
-  string string;
+  usize string;
   s64 number;
 };
 
@@ -41,26 +41,32 @@ struct Token {
   TokenData data;
 };
 
+struct Tokens {
+  List<Token> tokens;
+  List<string> strings;
+
+  static Tokens init();
+
+  void deinit();
+
+  void dump();
+};
+
 struct Tokenizer {
   string code;
   size_t pos;
-  List<Token> tokens;
+  Tokens tokens;
 
-  static Tokenizer init(string code) {
-    Tokenizer self = {
-        code,
-        0,
-        List<Token>::init(),
-    };
-    return self;
-  }
+  static Tokenizer init(string code);
 
-  Token next() {}
+  u8 pch();
+
+  u8 ch();
+
+  void tokenize();
+
+  Token _next();
 };
 
-List<Token> tokenize(string code) {
-  auto tokenizer = Tokenizer::init(code);
-  Token token;
-  return tokenizer;
-}
+Tokens tokenize(string code);
 } // namespace drop

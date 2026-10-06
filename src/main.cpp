@@ -1,8 +1,7 @@
-#include "list.h"
+#include "tokenizer.h"
 
 int main() {
-  auto list = drop::List<int>::init();
-  list.append(123);
-
-  list.deinit();
+  auto tokens = drop::tokenize(drop::strlit("main \"hello\""));
+  tokens.dump();
+  tokens.deinit();
 }
