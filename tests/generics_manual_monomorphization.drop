@@ -1,0 +1,17 @@
+struct Vector #generic(T) {
+	x: T;
+	y: T;
+};
+
+#monomorphize Vector(u8);
+#monomorphize Vector(u16);
+#monomorphize Vector(u32);
+#monomorphize Vector(u64);
+
+#monomorphize Vector(s8);
+#monomorphize Vector(s16);
+#monomorphize Vector(s32);
+#monomorphize Vector(s64);
+
+#monomorphize Vector(f32);
+#monomorphize Vector(f64);

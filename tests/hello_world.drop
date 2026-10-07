@@ -1,6 +1,6 @@
-extern fn puts (s: *const u8) i32;
+extern fn puts (s: *const u8) s32;
 
-fn main () i32 {
+fn main () s32 {
     return puts("Hello, World!");
 }
 
