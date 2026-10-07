@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
-#include <cstring>
+#include <stdint.h>
+#include <string.h>
 
 namespace drop {
 // types

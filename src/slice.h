@@ -1,9 +1,9 @@
 #pragma once
 #include "base.h"
-#include <cassert>
-#include <cstddef>
-#include <cstdio>
-#include <cstdlib>
+#include <assert.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace drop {
 template <typename T> struct slice {

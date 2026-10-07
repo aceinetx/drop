@@ -21,6 +21,7 @@ struct ASTNode {
 
 struct AST {
   List<ASTNode> nodes;
+  List<List<usize>> blocks;
   usize root;
 
   static AST init();

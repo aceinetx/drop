@@ -1,5 +1,5 @@
 #include "parser.h"
-#include <cstdio>
+#include <stdio.h>
 
 #define X(ident) drop::strlit(#ident),
 drop::string drop::ast_node_type_names[] = {XAstNodeTypes};
@@ -21,11 +21,18 @@ void drop::ASTNode::dump(usize indent) {
 drop::AST drop::AST::init() {
   return {
       List<ASTNode>::init(),
+      List<List<usize>>::init(),
       0,
   };
 }
 
-void drop::AST::deinit() { nodes.deinit(); }
+void drop::AST::deinit() {
+  for (usize i = 0; i < blocks.items.len; i++) {
+    blocks.items[i].deinit();
+  }
+  blocks.deinit();
+  nodes.deinit();
+}
 
 void drop::AST::dump() {
   auto node = nodes.items[root];

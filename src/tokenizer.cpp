@@ -1,6 +1,6 @@
 #include "tokenizer.h"
-#include <cctype>
-#include <cstdio>
+#include <ctype.h>
+#include <stdio.h>
 
 #define X(ident) drop::strlit(#ident),
 drop::string drop::token_type_names[] = {XTokenTypes};

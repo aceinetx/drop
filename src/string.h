@@ -1,6 +1,6 @@
 #include "slice.h"
-#include <cctype>
-#include <cstring>
+#include <ctype.h>
+#include <string.h>
 
 namespace drop {
 using string = slice<u8>;

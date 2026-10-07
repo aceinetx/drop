@@ -1,7 +1,7 @@
 #pragma once
 #include "slice.h"
-#include <cassert>
-#include <cstdlib>
+#include <assert.h>
+#include <stdlib.h>
 
 namespace drop {
 template <typename T> T *create() {
