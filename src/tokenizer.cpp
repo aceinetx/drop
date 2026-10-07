@@ -33,7 +33,8 @@ void drop::Tokens::dump() {
     auto tag = list.items[i].tag;
     auto data = list.items[i].data;
     auto name = token_type_names[(usize)tag];
-    printf("%5zu = %02zu %-15.*s ", i, (usize)tag, (s32)name.len, name.ptr);
+    printf("%5zu [%5zu .. %-5zu] = %02zu %-15.*s ", i, list.items[i].position,
+           list.items[i].length, (usize)tag, (s32)name.len, name.ptr);
 
     switch (tag) {
     case TokenType::Identifier:
@@ -103,14 +104,14 @@ drop::Token drop::Tokenizer::_next() {
 
 #define keyword(keyw, type)                                                    \
   if (s.compare(strlit(keyw)))                                                 \
-    return { type, {0} }
+  return {type, {0}, start, len}
       keyword("extern", TokenType::Extern);
       keyword("return", TokenType::Return);
       keyword("fn", TokenType::Fn);
       keyword("const", TokenType::Const);
 
       size_t i = tokens.strings.append(s.dupe());
-      Token token = {TokenType::Identifier, {i}};
+      Token token = {TokenType::Identifier, {i}, start, len};
       return token;
     } else if (c == '"') {
       ch();
@@ -127,7 +128,10 @@ drop::Token drop::Tokenizer::_next() {
       s = s.dupe();
       tokens.strings.append(s);
 
-      Token token = {TokenType::String, {tokens.strings.items.len - 1}};
+      Token token = {TokenType::String,
+                     {tokens.strings.items.len - 1},
+                     start - 1,
+                     len + 1};
       return token;
     } else if (isspace(c)) {
       ch();
@@ -135,7 +139,7 @@ drop::Token drop::Tokenizer::_next() {
   }                                                                            \
   else if (c == sym) {                                                         \
     ch();                                                                      \
-    return { type, {0} }
+    return {type, {0}, pos - 1, 1}
       symbol(':', TokenType::Colon);
       symbol(';', TokenType::Semicolon);
       symbol('(', TokenType::Lparen);
@@ -154,11 +158,13 @@ drop::Token drop::Tokenizer::_next() {
       ch();
       if (pch() == '>') {
         ch();
-        return {TokenType::FatArrow, {0}};
+        return {TokenType::FatArrow, {0}, pos - 2, 2};
       } else {
-        return {TokenType::Eq, {0}};
+        return {TokenType::Eq, {0}, pos - 1, 1};
       }
     } else if (isdigit(c)) {
+      usize start = pos;
+
       s64 number = 0;
 
       while (isdigit(pch())) {
@@ -166,13 +172,15 @@ drop::Token drop::Tokenizer::_next() {
         number += ch() - '0';
       }
 
-      return Token::make_number(number);
+      usize len = pos - start;
+
+      return Token::make_number(number, start, len);
     } else {
       ch();
-      return Token::make_unknown(c);
+      return Token::make_unknown(c, pos - 1, 1);
     }
   }
-  return {TokenType::Eof, {0}};
+  return {TokenType::Eof, {0}, pos, 1};
 }
 
 // #endregion

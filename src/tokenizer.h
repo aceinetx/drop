@@ -49,15 +49,17 @@ union TokenData {
 struct Token {
   TokenType tag;
   TokenData data;
+  usize position;
+  usize length;
 
-  static Token make_number(s64 number) {
-    Token token = {TokenType::Number, {0}};
+  static Token make_number(s64 number, usize position, usize length) {
+    Token token = {TokenType::Number, {0}, position, length};
     token.data.number = number;
     return token;
   }
 
-  static Token make_unknown(u8 ch) {
-    Token token = {TokenType::Unknown, {0}};
+  static Token make_unknown(u8 ch, usize position, usize length) {
+    Token token = {TokenType::Unknown, {0}, position, length};
     token.data.ch = ch;
     return token;
   }
