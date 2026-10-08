@@ -2,7 +2,9 @@
 #include "tokenizer.h"
 
 namespace drop {
-#define XAstNodeTypes X(Root)
+#define XAstNodeTypes                                                          \
+  X(Root)                                                                      \
+  X(FuncDef)
 
 #define X(ident) ident,
 enum class ASTNodeType : u8 { XAstNodeTypes };
@@ -10,9 +12,24 @@ enum class ASTNodeType : u8 { XAstNodeTypes };
 
 extern string ast_node_type_names[];
 
+struct NodeFuncDef {
+  bool is_extern;
+
+  // Index of strings AST field
+  usize name;
+
+  // Index of nodes AST field
+  usize return_type;
+
+  // Index of nodes AST field
+  usize body;
+};
+
 union ASTNodeData {
   // Index of node_arrays list of AST
   usize root;
+
+  NodeFuncDef funcdef;
 };
 
 struct ASTNode {
@@ -25,6 +42,7 @@ struct ASTNode {
 struct AST {
   List<ASTNode> nodes;
   List<List<usize>> node_arrays;
+  List<string> strings;
   usize root;
 
   static AST init();

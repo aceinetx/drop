@@ -9,6 +9,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Ap
 	add_compile_options("-Wall" "-Wextra" "-Wpedantic" "-nostdlib++" "-nostdinc++")
 endif()
 if(LINUX AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_compile_options("-O0")
 	add_compile_options("-fsanitize=address")
 	add_link_options("-fsanitize=address")
 endif()

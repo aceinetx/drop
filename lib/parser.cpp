@@ -23,15 +23,22 @@ drop::AST drop::AST::init() {
   return {
       List<ASTNode>::init(),
       List<List<usize>>::init(),
+      List<string>::init(),
       0,
   };
 }
 
 void drop::AST::deinit() {
+  for (usize i = 0; i < strings.items.len; i++) {
+    free(strings.items[i]);
+  }
+  strings.deinit();
+
   for (usize i = 0; i < node_arrays.items.len; i++) {
     node_arrays.items[i].deinit();
   }
   node_arrays.deinit();
+
   nodes.deinit();
 }
 
@@ -98,7 +105,12 @@ static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
     return 0;
   }
 
-  return 1;
+  ASTNode node = {ASTNodeType::FuncDef, {0}};
+  memset(&node.data, 0, sizeof node.data);
+  node.data.funcdef.is_extern = is_extern;
+  usize node_index = self->ast.nodes.append(node);
+
+  return node_index;
 }
 
 static bool parse_tld(Parser *self, ParserDiagnostics *diagnostics) {
