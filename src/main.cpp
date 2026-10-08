@@ -16,7 +16,15 @@ fn main () i32 {
   auto tokens = drop::tokenize(code);
   tokens.dump();
 
-  auto ast = drop::parse(&tokens);
+  drop::AST ast;
+  {
+    drop::ParserDiagnostics diag;
+    if (!drop::parse(&tokens, &ast, &diag)) {
+      printf("parse error at position %zu: %s\n", diag.position, diag.message);
+      drop_trap();
+    }
+  }
+
   tokens.deinit();
 
   ast.dump();

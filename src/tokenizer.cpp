@@ -1,4 +1,5 @@
 #include "tokenizer.h"
+#include "string_format_arg.h"
 #include <ctype.h>
 #include <stdio.h>
 
@@ -26,7 +27,7 @@ void drop::Tokens::dump() {
   puts("Tokens dump:");
   puts("- strings:");
   for (usize i = 0; i < strings.items.len; i++) {
-    printf("%5zu = %.*s\n", i, (s32)strings.items[i].len, strings.items[i].ptr);
+    printf("%5zu = " sv_fmt "\n", i, sv_arg(strings.items[i]));
   }
   puts("- tokens:");
   for (usize i = 0; i < list.items.len; i++) {
@@ -40,7 +41,7 @@ void drop::Tokens::dump() {
     case TokenType::Identifier:
     case TokenType::String: {
       auto string = strings.items[data.string];
-      printf("[string at %zu: %.*s]", data.string, (s32)string.len, string.ptr);
+      printf("[string at %zu: " sv_fmt "]", data.string, sv_arg(string));
     } break;
     case TokenType::Number:
       printf("%ld", data.number);

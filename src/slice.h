@@ -10,8 +10,19 @@ template <typename T> struct slice {
   T *ptr;
   size_t len;
 
+  T operator[](size_t i) const {
+    if (i >= len) {
+      fprintf(
+          stderr,
+          "internal error: out of bounds slice access: (slice of [%zu])[%zu]\n",
+          i, len);
+      drop_trap();
+    }
+    return ptr[i];
+  }
+
   T &operator[](size_t i) {
-    if (i > len) {
+    if (i >= len) {
       fprintf(
           stderr,
           "internal error: out of bounds slice access: (slice of [%zu])[%zu]\n",

@@ -10,7 +10,10 @@ enum class ASTNodeType : u8 { XAstNodeTypes };
 
 extern string ast_node_type_names[];
 
-union ASTNodeData {};
+union ASTNodeData {
+  // Index of node_arrays list of AST
+  usize root;
+};
 
 struct ASTNode {
   ASTNodeType type;
@@ -21,7 +24,7 @@ struct ASTNode {
 
 struct AST {
   List<ASTNode> nodes;
-  List<List<usize>> blocks;
+  List<List<usize>> node_arrays;
   usize root;
 
   static AST init();
@@ -31,13 +34,21 @@ struct AST {
   void dump();
 };
 
+struct ParserDiagnostics {
+  usize position;
+  u8 message[512];
+};
+
 struct Parser {
   const Tokens *const tokens;
   AST ast;
+  usize token_index;
 
   static Parser init(const Tokens *tokens);
-  void parse();
+
+  bool parse(ParserDiagnostics *diagnostics);
 };
 
-AST parse(const Tokens *const tokens);
+bool parse(const Tokens *const tokens, AST *ast,
+           ParserDiagnostics *diagnostics);
 } // namespace drop

@@ -63,6 +63,8 @@ struct Token {
     token.data.ch = ch;
     return token;
   }
+
+  operator bool() { return tag != TokenType::Unknown && tag != TokenType::Eof; }
 };
 
 struct Tokens {
