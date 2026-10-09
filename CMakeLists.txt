@@ -32,7 +32,12 @@ set_target_properties(libdrop PROPERTIES OUTPUT_NAME "drop")
 
 file(GLOB_RECURSE CLI_SOURCES CONFIGURE_DEPENDS "cli/*.cpp")
 
-add_executable(drop ${CLI_SOURCES})
-target_link_libraries(drop libdrop)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_executable(drop ${CLI_SOURCES} ${LIB_SOURCES})
+	target_include_directories(drop PUBLIC "lib")
+else()
+	add_executable(drop ${CLI_SOURCES})
+	target_link_libraries(drop libdrop)
+endif()
 
 #endregion
