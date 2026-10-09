@@ -32,7 +32,8 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
     printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
   } break;
   case ASTNodeType::FuncDef: {
-    auto funcdef = &data.funcdef;
+    auto funcdef = &ast->funcdefs.items[data.funcdef];
+
     print_indent(indent + 1);
     printf("- is_extern: %s\n", drop_bool_fmt(funcdef->is_extern));
     print_indent(indent + 1);
@@ -40,9 +41,11 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
     print_indent(indent + 1);
     printf("- return_type\n");
     ast->nodes.items[funcdef->return_type].dump(ast, indent + 2);
-    print_indent(indent + 1);
-    printf("- body\n");
-    ast->nodes.items[funcdef->body].dump(ast, indent + 2);
+    if (!funcdef->is_extern) {
+      print_indent(indent + 1);
+      printf("- body\n");
+      ast->nodes.items[funcdef->body].dump(ast, indent + 2);
+    }
   } break;
   case ASTNodeType::Block: {
     auto block = &ast->node_arrays.items[data.node_array];
@@ -54,6 +57,8 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
   }
 }
 
+void drop::NodeFuncDef::deinit() { args.deinit(); }
+
 // #endregion
 
 // #region AST
@@ -63,6 +68,7 @@ drop::AST drop::AST::init() {
       List<ASTNode>::init(),
       List<List<usize>>::init(),
       List<string>::init(),
+      List<NodeFuncDef>::init(),
       0,
   };
 }
@@ -77,6 +83,11 @@ void drop::AST::deinit() {
     node_arrays.items[i].deinit();
   }
   node_arrays.deinit();
+
+  for (usize i = 0; i < funcdefs.items.len; i++) {
+    funcdefs.items[i].deinit();
+  }
+  funcdefs.deinit();
 
   nodes.deinit();
 }
@@ -156,6 +167,10 @@ static usize parse_type(Parser *self, ParserDiagnostics *diagnostics) {
   }
 }
 
+static usize parse_statement(Parser *self, ParserDiagnostics *diagnostics) {
+  return 1;
+}
+
 static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
   if (!expect(self, diagnostics, TokenType::Lbrace))
     return 0;
@@ -167,16 +182,67 @@ static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
   auto list = self->ast.node_arrays.append(List<usize>::init());
   node.data.node_array = list;
 
+  auto stmt = parse_statement(self, diagnostics);
+  if (!stmt)
+    return 0;
+  self->ast.node_arrays.items[node.data.node_array].append(stmt);
+
   return self->ast.nodes.append(node);
+}
+
+static bool parse_func_args(Parser *self, ParserDiagnostics *diagnostics,
+                            List<NodeFuncDefArg> *args) {
+  if (!expect(self, diagnostics, TokenType::Lparen))
+    return false;
+
+  while (peek(self).tag != TokenType::Rparen) {
+    auto name_token = expect(self, diagnostics, TokenType::Identifier);
+    if (!name_token)
+      return false;
+
+    if (!expect(self, diagnostics, TokenType::Colon))
+      return false;
+
+    auto type = parse_type(self, diagnostics);
+    if (!type)
+      return false;
+
+    auto name_str = self->ast.strings.append(
+        self->tokens->strings.items[name_token.data.string].dupe());
+    args->append({name_str, type});
+
+    auto delim = peek(self);
+    switch (delim.tag) {
+    case TokenType::Comma:
+      next(self);
+      continue;
+    case TokenType::Rparen:
+      break;
+    default:
+      auto name = token_type_names[(usize)delim.tag];
+      diagnostics->position = delim.position;
+      sprintf((char *)diagnostics->message,
+              "expected Comma or Rparen, but found " sv_fmt, sv_arg(name));
+      break;
+    }
+  }
+
+  if (!expect(self, diagnostics, TokenType::Rparen))
+    return false;
+
+  return true;
 }
 
 static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
   const auto first = next(self);
   ASTNode node = {ASTNodeType::FuncDef, {0}};
   memset(&node.data, 0, sizeof node.data);
+  node.data.funcdef = self->ast.funcdefs.append({});
+
+  NodeFuncDef *funcdef = &self->ast.funcdefs.items[node.data.funcdef];
 
   if (first.tag == TokenType::Extern) {
-    node.data.funcdef.is_extern = true;
+    funcdef->is_extern = true;
 
     if (!expect(self, diagnostics, TokenType::Fn))
       return 0;
@@ -192,24 +258,26 @@ static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
   auto name = expect(self, diagnostics, TokenType::Identifier);
   if (!name)
     return 0;
-  node.data.funcdef.name = self->ast.strings.append(
+  funcdef->name = self->ast.strings.append(
       self->tokens->strings.items[name.data.string].dupe());
 
-  // TODO args parsing
-  if (!expect(self, diagnostics, TokenType::Lparen))
-    return 0;
-  if (!expect(self, diagnostics, TokenType::Rparen))
-    return 0;
+  if (!parse_func_args(self, diagnostics, &funcdef->args))
+    return false;
 
   auto type = parse_type(self, diagnostics);
   if (!type)
     return 0;
-  node.data.funcdef.return_type = type;
+  funcdef->return_type = type;
 
-  auto body = parse_block(self, diagnostics);
-  if (!body)
-    return 0;
-  node.data.funcdef.body = body;
+  if (!funcdef->is_extern) {
+    auto body = parse_block(self, diagnostics);
+    if (!body)
+      return 0;
+    funcdef->body = body;
+  } else {
+    if (!expect(self, diagnostics, TokenType::Semicolon))
+      return 0;
+  }
 
   usize node_index = self->ast.nodes.append(node);
   return node_index;

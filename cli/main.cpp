@@ -2,8 +2,7 @@
 #include "tokenizer.h"
 
 int main() {
-  /*
-auto code = drop::strlit(R"(
+  auto code = drop::strlit(R"(
 extern fn puts (s: *const u8) i32;
 
 fn sixty_nine() i32 {
@@ -14,13 +13,7 @@ fn main () i32 {
   return puts("Hello, World!");
 }
 )");
-*/
-  auto code = drop::strlit(R"(
-fn empty() void {
-}
-fn empty2() void {
-}
-)");
+
   auto tokens = drop::tokenize(code);
   tokens.dump();
 
@@ -29,6 +22,8 @@ fn empty2() void {
     drop::ParserDiagnostics diag;
     if (!drop::parse(&tokens, &ast, &diag)) {
       printf("parse error at position %zu: %s\n", diag.position, diag.message);
+      printf("%c\n", code[diag.position]);
+
       drop_trap();
     }
   }

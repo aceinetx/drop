@@ -1,4 +1,5 @@
 #pragma once
+#include "pair.h"
 #include "tokenizer.h"
 
 namespace drop {
@@ -16,6 +17,14 @@ enum class ASTNodeType : u8 { XAstNodeTypes };
 
 extern string ast_node_type_names[];
 
+struct NodeFuncDefArg {
+  // Index of strings AST field
+  usize name;
+
+  // Index of nodes AST field
+  usize type;
+};
+
 struct NodeFuncDef {
   bool is_extern;
 
@@ -27,6 +36,10 @@ struct NodeFuncDef {
 
   // Index of nodes AST field
   usize body;
+
+  List<NodeFuncDefArg> args;
+
+  void deinit();
 };
 
 union ASTNodeData {
@@ -36,7 +49,8 @@ union ASTNodeData {
   // Index of string list of AST
   usize string;
 
-  NodeFuncDef funcdef;
+  // Index of funcdefs list of AST
+  usize funcdef;
 
   // Index of nodes list of AST
   usize node;
@@ -55,6 +69,8 @@ struct AST {
   List<ASTNode> nodes;
   List<List<usize>> node_arrays;
   List<string> strings;
+  List<NodeFuncDef> funcdefs;
+
   usize root;
 
   static AST init();
