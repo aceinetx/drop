@@ -27,6 +27,9 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
       node->dump(ast, indent + 1);
     }
   } break;
+  case ASTNodeType::Return: {
+    ast->nodes.items[data.node].dump(ast, indent + 1);
+  } break;
   case ASTNodeType::TypeRef: {
     print_indent(indent + 1);
     printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
@@ -53,6 +56,21 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
       auto node = &ast->nodes.items[block->items[i]];
       node->dump(ast, indent + 1);
     }
+  } break;
+  case ASTNodeType::FuncCall: {
+    ast->nodes.items[data.funccall.expr].dump(ast, indent + 1);
+    auto args = &ast->node_arrays.items[data.funccall.expr];
+    for (usize i = 0; i < args->items.len; i++) {
+      ast->nodes.items[args->items[i]].dump(ast, indent + 1);
+    }
+  } break;
+  case ASTNodeType::Number: {
+    print_indent(indent + 1);
+    printf("%ld\n", data.number);
+  } break;
+  case ASTNodeType::String: {
+    print_indent(indent + 1);
+    printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
   } break;
   }
 }
@@ -167,14 +185,111 @@ static usize parse_type(Parser *self, ParserDiagnostics *diagnostics) {
   }
 }
 
+static usize parse_primary(Parser *self, ParserDiagnostics *diagnostics) {
+  const auto first = next(self);
+
+  ASTNode node;
+
+  switch (first.tag) {
+  case TokenType::Identifier:
+    node.type = ASTNodeType::VarRef;
+    node.data.string = self->ast.strings.append(
+        self->tokens->strings.items[first.data.string].dupe());
+    break;
+  case TokenType::Number:
+    node.type = ASTNodeType::Number;
+    node.data.number = first.data.number;
+    break;
+  case TokenType::String:
+    node.type = ASTNodeType::String;
+    node.data.string = self->ast.strings.append(
+        self->tokens->strings.items[first.data.string].dupe());
+    break;
+  default:
+    auto name = token_type_names[(usize)first.tag];
+    diagnostics->position = first.position;
+    sprintf((char *)diagnostics->message,
+            "expected Identifier or Number, but found " sv_fmt, sv_arg(name));
+    return 0;
+  }
+
+  auto node_index = self->ast.nodes.append(node);
+  return node_index;
+}
+
+static usize parse_postfix(Parser *self, ParserDiagnostics *diagnostics) {
+  auto primary = parse_primary(self, diagnostics);
+  if (!primary)
+    return 0;
+
+  ASTNode node;
+
+  const auto token = peek(self);
+  switch (token.tag) {
+  case TokenType::Lparen: {
+    next(self);
+
+    node.type = ASTNodeType::FuncCall;
+
+    auto list = List<usize>::init();
+
+    while (peek(self).tag != TokenType::Rparen) {
+      auto expr = parse_postfix(self, diagnostics);
+
+      list.append(expr);
+
+      auto delim = peek(self);
+      switch (delim.tag) {
+      case TokenType::Comma:
+        next(self);
+        continue;
+      case TokenType::Rparen:
+        break;
+      default:
+        auto name = token_type_names[(usize)delim.tag];
+        diagnostics->position = delim.position;
+        sprintf((char *)diagnostics->message,
+                "expected Comma or Rparen, but found " sv_fmt, sv_arg(name));
+        break;
+      }
+    }
+
+    if (!expect(self, diagnostics, TokenType::Rparen))
+      return 0;
+
+    auto list_id = self->ast.node_arrays.append(list);
+
+    node.data.node_array = list_id;
+  } break;
+  default:
+    return primary;
+  }
+
+  return self->ast.nodes.append(node);
+}
+
+static usize parse_expr(Parser *self, ParserDiagnostics *diagnostics) {
+  return parse_postfix(self, diagnostics);
+}
+
 static usize parse_statement(Parser *self, ParserDiagnostics *diagnostics) {
-  return 1;
+  if (!expect(self, diagnostics, TokenType::Return))
+    return 0;
+
+  auto expr = parse_expr(self, diagnostics);
+  if (!expr)
+    return 0;
+
+  auto node = ASTNode{ASTNodeType::Return, {expr}};
+
+  if (!expect(self, diagnostics, TokenType::Semicolon))
+    return 0;
+
+  return self->ast.nodes.append(node);
 }
 
 static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
   if (!expect(self, diagnostics, TokenType::Lbrace))
-    return 0;
-  if (!expect(self, diagnostics, TokenType::Rbrace))
     return 0;
 
   ASTNode node = {ASTNodeType::Block, {0}};
@@ -186,6 +301,9 @@ static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
   if (!stmt)
     return 0;
   self->ast.node_arrays.items[node.data.node_array].append(stmt);
+
+  if (!expect(self, diagnostics, TokenType::Rbrace))
+    return 0;
 
   return self->ast.nodes.append(node);
 }

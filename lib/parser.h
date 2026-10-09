@@ -1,15 +1,19 @@
 #pragma once
-#include "pair.h"
 #include "tokenizer.h"
 
 namespace drop {
 #define XAstNodeTypes                                                          \
   X(Root /* Uses the node_array data union field */)                           \
-  X(FuncDef)                                                                   \
+  X(FuncDef /* Uses the funcdef data union field */)                           \
   X(TypeRef /* Uses the string data union field */)                            \
   X(TypePtr /* Uses the node data union field */)                              \
   X(TypeConst /* Uses the node data union field */)                            \
-  X(Block /* Uses the node_array data union field */)
+  X(Block /* Uses the node_array data union field */)                          \
+  X(VarRef /* Uses the string data union field */)                             \
+  X(Number /* Uses the number union field */)                                  \
+  X(String /* Uses the string data union field */)                             \
+  X(FuncCall /* Uses the funccall data union field */)                         \
+  X(Return /* Uses the node data union field */)
 
 #define X(ident) ident,
 enum class ASTNodeType : u8 { XAstNodeTypes };
@@ -42,6 +46,14 @@ struct NodeFuncDef {
   void deinit();
 };
 
+struct NodeFuncCall {
+  // Index of nodes list of AST
+  usize expr;
+
+  // Index of node_arrays list of AST
+  usize args;
+};
+
 union ASTNodeData {
   // Index of node_arrays list of AST
   usize node_array;
@@ -54,6 +66,10 @@ union ASTNodeData {
 
   // Index of nodes list of AST
   usize node;
+
+  s64 number;
+
+  NodeFuncCall funccall;
 };
 
 struct AST;

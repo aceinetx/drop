@@ -23,6 +23,7 @@ fn main () i32 {
     if (!drop::parse(&tokens, &ast, &diag)) {
       printf("parse error at position %zu: %s\n", diag.position, diag.message);
       printf("%c\n", code[diag.position]);
+      printf("%.*s\n", (drop::s32)diag.position + 1, code.ptr);
 
       drop_trap();
     }
