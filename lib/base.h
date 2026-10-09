@@ -42,4 +42,6 @@ using usize = size_t;
 #include <signal.h>
 #define drop_trap() raise(SIGTRAP)
 #endif
+
+#define drop_bool_fmt(v) (v ? "true" : "false")
 } // namespace drop

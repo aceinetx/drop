@@ -3,8 +3,11 @@
 
 namespace drop {
 #define XAstNodeTypes                                                          \
-  X(Root)                                                                      \
-  X(FuncDef)
+  X(Root /* Uses the node_array data union field */)                           \
+  X(FuncDef)                                                                   \
+  X(TypeRef /* Uses the string data union field */)                            \
+  X(TypePtr /* Uses the node data union field */)                              \
+  X(TypeConst /* Uses the node data union field */)
 
 #define X(ident) ident,
 enum class ASTNodeType : u8 { XAstNodeTypes };
@@ -27,16 +30,24 @@ struct NodeFuncDef {
 
 union ASTNodeData {
   // Index of node_arrays list of AST
-  usize root;
+  usize node_array;
+
+  // Index of string list of AST
+  usize string;
 
   NodeFuncDef funcdef;
+
+  // Index of nodes list of AST
+  usize node;
 };
+
+struct AST;
 
 struct ASTNode {
   ASTNodeType type;
   ASTNodeData data;
 
-  void dump(usize indent);
+  void dump(AST *ast, usize indent);
 };
 
 struct AST {

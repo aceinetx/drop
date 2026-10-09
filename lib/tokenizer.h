@@ -38,7 +38,7 @@ enum class TokenType : u8 { XTokenTypes };
 extern string token_type_names[];
 
 union TokenData {
-  // Index of strings field of Tokens structure
+  // Index of strings field of Tokens
   usize string;
 
   s64 number;
