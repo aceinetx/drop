@@ -16,8 +16,9 @@ fn main () i32 {
 )");
 */
   auto code = drop::strlit(R"(
-fn sixty_nine() i32 {
-	return 69;
+fn empty() void {
+}
+fn empty2() void {
 }
 )");
   auto tokens = drop::tokenize(code);

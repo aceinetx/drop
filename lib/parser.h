@@ -7,7 +7,8 @@ namespace drop {
   X(FuncDef)                                                                   \
   X(TypeRef /* Uses the string data union field */)                            \
   X(TypePtr /* Uses the node data union field */)                              \
-  X(TypeConst /* Uses the node data union field */)
+  X(TypeConst /* Uses the node data union field */)                            \
+  X(Block /* Uses the node_array data union field */)
 
 #define X(ident) ident,
 enum class ASTNodeType : u8 { XAstNodeTypes };

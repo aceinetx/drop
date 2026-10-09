@@ -40,10 +40,16 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
     print_indent(indent + 1);
     printf("- return_type\n");
     ast->nodes.items[funcdef->return_type].dump(ast, indent + 2);
-    /*
+    print_indent(indent + 1);
     printf("- body\n");
     ast->nodes.items[funcdef->body].dump(ast, indent + 2);
-    */
+  } break;
+  case ASTNodeType::Block: {
+    auto block = &ast->node_arrays.items[data.node_array];
+    for (usize i = 0; i < block->items.len; i++) {
+      auto node = &ast->nodes.items[block->items[i]];
+      node->dump(ast, indent + 1);
+    }
   } break;
   }
 }
@@ -150,6 +156,20 @@ static usize parse_type(Parser *self, ParserDiagnostics *diagnostics) {
   }
 }
 
+static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
+  if (!expect(self, diagnostics, TokenType::Lbrace))
+    return 0;
+  if (!expect(self, diagnostics, TokenType::Rbrace))
+    return 0;
+
+  ASTNode node = {ASTNodeType::Block, {0}};
+
+  auto list = self->ast.node_arrays.append(List<usize>::init());
+  node.data.node_array = list;
+
+  return self->ast.nodes.append(node);
+}
+
 static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
   const auto first = next(self);
   ASTNode node = {ASTNodeType::FuncDef, {0}};
@@ -186,6 +206,11 @@ static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
     return 0;
   node.data.funcdef.return_type = type;
 
+  auto body = parse_block(self, diagnostics);
+  if (!body)
+    return 0;
+  node.data.funcdef.body = body;
+
   usize node_index = self->ast.nodes.append(node);
   return node_index;
 }
@@ -210,7 +235,6 @@ bool drop::Parser::parse(ParserDiagnostics *diagnostics) {
       return false;
 
     ast.node_arrays.items[list_id].append(index);
-    break;
   }
 
   return true;
