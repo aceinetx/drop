@@ -44,4 +44,20 @@ template <typename T> struct slice {
     return new_slice;
   }
 };
+
+template <typename T> bool slice_compare(slice<T> one, slice<T> other) {
+  return !memcmp(one.ptr, other.ptr, drop_min(one.len, other.len));
+}
+
+/* Stolen from zig */
+template <typename T> inline u32 slice_hash(slice<T> slice) {
+  // FNV 32-bit hash
+  u32 h = 2166136261;
+  u8 *buff = (u8 *)slice.ptr;
+  for (usize i = 0; i < sizeof(T) * slice.len; i += 1) {
+    h = h ^ ((u8)buff[i]);
+    h = h * 16777619;
+  }
+  return h;
+}
 } // namespace drop

@@ -32,12 +32,33 @@ set_target_properties(libdrop PROPERTIES OUTPUT_NAME "drop")
 
 file(GLOB_RECURSE CLI_SOURCES CONFIGURE_DEPENDS "cli/*.cpp")
 
+add_executable(drop ${CLI_SOURCES})
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	add_executable(drop ${CLI_SOURCES} ${LIB_SOURCES})
-	target_include_directories(drop PUBLIC "lib")
+	target_link_libraries(drop libdrop_static)
 else()
-	add_executable(drop ${CLI_SOURCES})
 	target_link_libraries(drop libdrop)
+endif()
+
+#endregion
+
+#region tests
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "cpp_tests/*.cpp")
+
+	set(i 0)
+	foreach(file ${TEST_SOURCES})
+		if(NOT (file MATCHES "test_"))
+			continue()
+		endif()
+
+		add_executable            ("test_${i}" "cpp_tests/testrt.cpp" ${file})
+		target_include_directories("test_${i}" PRIVATE "cpp_tests")
+		target_compile_definitions("test_${i}" PRIVATE "DROPTEST=${i}")
+		target_link_libraries     ("test_${i}" libdrop_static)
+
+		math(EXPR i "${i} + 1")
+	endforeach()
 endif()
 
 #endregion

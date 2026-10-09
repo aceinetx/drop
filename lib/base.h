@@ -2,7 +2,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(DROPTEST)
+#include "testrt.h"
+#endif
+
 namespace drop {
+
 // types
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -17,7 +22,9 @@ using usize = size_t;
 #define drop_min(x, y) ((x) < (y) ? (x) : (y))
 
 // trap
-#if defined(_MSC_VER)
+#if defined(DROPTEST)
+#define drop_trap() test_assert(0 && "trap signal")
+#elif defined(_MSC_VER)
 #include <intrin.h>
 #define drop_trap() __debugbreak()
 
