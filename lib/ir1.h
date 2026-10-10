@@ -1,4 +1,7 @@
 #pragma once
+#include "base.h"
+#include "list.h"
+#include "str.h"
 
 namespace drop {
 /*
@@ -48,15 +51,30 @@ fn main () i32 {
         .return_type = %12,
 };
  */
-enum InstructionType {
 
+#define XInstructionTypes                                                      \
+  X(TypeRef)                                                                   \
+  X(TypeConst)                                                                 \
+  X(TypePtr)                                                                   \
+  X(FuncDef)                                                                   \
+  X(Number)                                                                    \
+  X(String)                                                                    \
+  X(Call)                                                                      \
+  X(Return)
+
+#define X(ident) ident,
+enum InstructionType { XInstructionTypes };
+
+union InstructionData {
+  // Index of strings field of IR1
+  usize string;
 };
-
-union InstructionData {};
 
 struct Instruction {};
 
-struct IR1 {};
+struct IR1 {
+  List<string> strings;
+};
 
 struct IR1Gen {};
 } // namespace drop
