@@ -51,11 +51,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		if(NOT (file MATCHES "test_"))
 			continue()
 		endif()
+		
+		string(SHA1 file_hash ${file})
+		string(SUBSTRING ${file_hash} 0 8 DROPTEST)
 
-		add_executable            ("test_${i}" "cpp_tests/testrt.cpp" ${file})
-		target_include_directories("test_${i}" PRIVATE "cpp_tests")
-		target_compile_definitions("test_${i}" PRIVATE "DROPTEST=${i}")
-		target_link_libraries     ("test_${i}" libdrop_static)
+		add_executable            ("test_${DROPTEST}" "cpp_tests/testrt.cpp" ${file})
+		target_include_directories("test_${DROPTEST}" PRIVATE "cpp_tests")
+		target_compile_definitions("test_${DROPTEST}" PRIVATE "DROPTEST=0x${DROPTEST}")
+		target_link_libraries     ("test_${DROPTEST}" libdrop_static)
 
 		math(EXPR i "${i} + 1")
 	endforeach()
