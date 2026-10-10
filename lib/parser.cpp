@@ -30,6 +30,12 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
   case ASTNodeType::Return: {
     ast->nodes.items[data.node].dump(ast, indent + 1);
   } break;
+  case ASTNodeType::TypeConst: {
+    ast->nodes.items[data.node].dump(ast, indent + 1);
+  } break;
+  case ASTNodeType::TypePtr: {
+    ast->nodes.items[data.node].dump(ast, indent + 1);
+  } break;
   case ASTNodeType::TypeRef: {
     print_indent(indent + 1);
     printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
@@ -44,6 +50,14 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
     print_indent(indent + 1);
     printf("- return_type\n");
     ast->nodes.items[funcdef->return_type].dump(ast, indent + 2);
+    print_indent(indent + 1);
+    printf("- args\n");
+    for (usize i = 0; i < funcdef->args.items.len; i++) {
+      auto arg = &funcdef->args.items[i];
+      print_indent(indent + 2);
+      printf("- " sv_fmt "\n", sv_arg(ast->strings.items[arg->name]));
+      ast->nodes.items[arg->type].dump(ast, indent + 3);
+    }
     if (!funcdef->is_extern) {
       print_indent(indent + 1);
       printf("- body\n");
@@ -59,7 +73,7 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
   } break;
   case ASTNodeType::FuncCall: {
     ast->nodes.items[data.funccall.expr].dump(ast, indent + 1);
-    auto args = &ast->node_arrays.items[data.funccall.expr];
+    auto args = &ast->node_arrays.items[data.funccall.args];
     for (usize i = 0; i < args->items.len; i++) {
       ast->nodes.items[args->items[i]].dump(ast, indent + 1);
     }
@@ -69,6 +83,10 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
     printf("%ld\n", data.number);
   } break;
   case ASTNodeType::String: {
+    print_indent(indent + 1);
+    printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
+  } break;
+  case ASTNodeType::VarRef: {
     print_indent(indent + 1);
     printf(sv_fmt "\n", sv_arg(ast->strings.items[data.string]));
   } break;
@@ -230,6 +248,7 @@ static usize parse_postfix(Parser *self, ParserDiagnostics *diagnostics) {
     next(self);
 
     node.type = ASTNodeType::FuncCall;
+    node.data.funccall.expr = primary;
 
     auto list = List<usize>::init();
 
@@ -259,7 +278,7 @@ static usize parse_postfix(Parser *self, ParserDiagnostics *diagnostics) {
 
     auto list_id = self->ast.node_arrays.append(list);
 
-    node.data.node_array = list_id;
+    node.data.funccall.args = list_id;
   } break;
   default:
     return primary;
