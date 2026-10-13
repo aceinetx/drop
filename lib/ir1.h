@@ -1,6 +1,7 @@
 #pragma once
 #include "base.h"
 #include "list.h"
+#include "parser.h"
 #include "str.h"
 
 namespace drop {
@@ -64,17 +65,45 @@ fn main () i32 {
 
 #define X(ident) ident,
 enum InstructionType { XInstructionTypes };
+#undef X
+
+extern string instruction_type_names[];
 
 union InstructionData {
   // Index of strings field of IR1
   usize string;
 };
 
-struct Instruction {};
-
-struct IR1 {
-  List<string> strings;
+struct Instruction {
+  InstructionType tag;
+  InstructionData data;
 };
 
-struct IR1Gen {};
+struct IR1 {
+  List<Instruction> insts;
+
+  List<string> strings;
+
+  static IR1 init();
+
+  void deinit();
+
+  void dump();
+};
+
+struct IR1GenDiagnostics {
+  u8 message[512];
+  usize position;
+};
+
+struct IR1Gen {
+  IR1 ir;
+  AST *ast;
+
+  static IR1Gen init(AST *ast);
+
+  void gen_node(AST *ast);
+};
+
+IR1 generate_ir1(AST *ast);
 } // namespace drop

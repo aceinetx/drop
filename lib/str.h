@@ -1,3 +1,4 @@
+#pragma once
 #include "slice.h"
 #include <ctype.h>
 #include <string.h>

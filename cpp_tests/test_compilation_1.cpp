@@ -1,4 +1,5 @@
 #include "base.h"
+#include "ir1.h"
 #include "parser.h"
 #include "tokenizer.h"
 #include <stdio.h>
@@ -29,11 +30,16 @@ fn main () i32 {
 
       drop_trap();
     }
-  }
 
-  tokens.deinit();
+    tokens.deinit();
+  }
 
   ast.dump();
 
+  auto ir1 = drop::generate_ir1(&ast);
   ast.deinit();
+
+  ir1.dump();
+
+  ir1.deinit();
 }

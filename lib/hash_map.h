@@ -9,18 +9,18 @@ template <typename K, typename V, u32 (*HashFunction)(K key),
           bool (*EqualFn)(K a, K b)>
 class HashMap {
 public:
-  void init(int capacity) { init_capacity(capacity); }
+  void init(s32 capacity) { init_capacity(capacity); }
   void deinit(void) { ::free(_entries); }
 
   struct Entry {
     bool used;
-    int distance_from_start_index;
+    s32 distance_from_start_index;
     K key;
     V value;
   };
 
   void clear() {
-    for (int i = 0; i < _capacity; i += 1) {
+    for (s32 i = 0; i < _capacity; i += 1) {
       _entries[i].used = false;
     }
     _size = 0;
@@ -28,29 +28,29 @@ public:
     _modification_count += 1;
   }
 
-  int size() const { return _size; }
+  s32 size() const { return _size; }
 
   void put(const K &key, const V &value) {
     _modification_count += 1;
-    internal_put(key, value);
+    s32ernal_put(key, value);
 
     // if we get too full (80%), double the capacity
     if (_size * 5 >= _capacity * 4) {
       Entry *old_entries = _entries;
-      int old_capacity = _capacity;
+      s32 old_capacity = _capacity;
       init_capacity(_capacity * 2);
-      // dump all of the old elements into the new table
-      for (int i = 0; i < old_capacity; i += 1) {
+      // dump all of the old elements s32o the new table
+      for (s32 i = 0; i < old_capacity; i += 1) {
         Entry *old_entry = &old_entries[i];
         if (old_entry->used)
-          internal_put(old_entry->key, old_entry->value);
+          s32ernal_put(old_entry->key, old_entry->value);
       }
       free(old_entries);
     }
   }
 
   const V &get(const K &key) const {
-    Entry *entry = internal_get(key);
+    Entry *entry = s32ernal_get(key);
     if (!entry) {
       puts("key not found");
       drop_trap();
@@ -58,14 +58,14 @@ public:
     return entry->value;
   }
 
-  Entry *maybe_get(const K &key) const { return internal_get(key); }
+  Entry *maybe_get(const K &key) const { return s32ernal_get(key); }
 
   void remove(const K &key) {
     _modification_count += 1;
-    int start_index = key_to_index(key);
-    for (int roll_over = 0; roll_over <= _max_distance_from_start_index;
+    s32 start_index = key_to_index(key);
+    for (s32 roll_over = 0; roll_over <= _max_distance_from_start_index;
          roll_over += 1) {
-      int index = (start_index + roll_over) % _capacity;
+      s32 index = (start_index + roll_over) % _capacity;
       Entry *entry = &_entries[index];
 
       if (!entry->used) {
@@ -77,7 +77,7 @@ public:
         continue;
 
       for (; roll_over < _capacity; roll_over += 1) {
-        int next_index = (start_index + roll_over + 1) % _capacity;
+        s32 next_index = (start_index + roll_over + 1) % _capacity;
         Entry *next_entry = &_entries[next_index];
         if (!next_entry->used || next_entry->distance_from_start_index == 0) {
           entry->used = false;
@@ -119,9 +119,9 @@ public:
   private:
     const HashMap *_table;
     // how many items have we returned
-    int _count = 0;
+    s32 _count = 0;
     // iterator through the entry array
-    int _index = 0;
+    s32 _index = 0;
     // used to detect concurrent modification
     u32 _inital_modification_count;
     Iterator(const HashMap *table)
@@ -136,29 +136,29 @@ public:
 
 private:
   Entry *_entries;
-  int _capacity;
-  int _size;
-  int _max_distance_from_start_index;
+  s32 _capacity;
+  s32 _size;
+  s32 _max_distance_from_start_index;
   // this is used to detect bugs where a hashtable is edited while an iterator
   // is running.
   u32 _modification_count = 0;
 
-  void init_capacity(int capacity) {
+  void init_capacity(s32 capacity) {
     _capacity = capacity;
     _entries = (Entry *)calloc(_capacity, sizeof(Entry));
     _size = 0;
     _max_distance_from_start_index = 0;
-    for (int i = 0; i < _capacity; i += 1) {
+    for (s32 i = 0; i < _capacity; i += 1) {
       _entries[i].used = false;
     }
   }
 
-  void internal_put(K key, V value) {
-    int start_index = key_to_index(key);
-    for (int roll_over = 0, distance_from_start_index = 0;
+  void s32ernal_put(K key, V value) {
+    s32 start_index = key_to_index(key);
+    for (s32 roll_over = 0, distance_from_start_index = 0;
          roll_over < _capacity;
          roll_over += 1, distance_from_start_index += 1) {
-      int index = (start_index + roll_over) % _capacity;
+      s32 index = (start_index + roll_over) % _capacity;
       Entry *entry = &_entries[index];
 
       if (entry->used && !EqualFn(entry->key, key)) {
@@ -196,15 +196,15 @@ private:
       };
       return;
     }
-    puts("put into a full HashMap");
+    puts("put s32o a full HashMap");
     drop_trap();
   }
 
-  Entry *internal_get(const K &key) const {
-    int start_index = key_to_index(key);
-    for (int roll_over = 0; roll_over <= _max_distance_from_start_index;
+  Entry *s32ernal_get(const K &key) const {
+    s32 start_index = key_to_index(key);
+    for (s32 roll_over = 0; roll_over <= _max_distance_from_start_index;
          roll_over += 1) {
-      int index = (start_index + roll_over) % _capacity;
+      s32 index = (start_index + roll_over) % _capacity;
       Entry *entry = &_entries[index];
 
       if (!entry->used)
@@ -216,8 +216,8 @@ private:
     return NULL;
   }
 
-  int key_to_index(const K &key) const {
-    return (int)(HashFunction(key) % ((u32)_capacity));
+  s32 key_to_index(const K &key) const {
+    return (s32)(HashFunction(key) % ((u32)_capacity));
   }
 };
 } // namespace drop
