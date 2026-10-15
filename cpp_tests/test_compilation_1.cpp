@@ -36,10 +36,24 @@ fn main () i32 {
 
   ast.dump();
 
-  auto ir1 = drop::generate_ir1(&ast);
-  ast.deinit();
+  drop::IR1 ir1;
+  {
+    drop::IR1GenDiagnostics diag;
+    if (!drop::generate_ir1(&ast, &ir1, &diag)) {
+      printf("ir1 gen error at position %zu..%zu: %s\n", diag.position,
+             diag.position_length, diag.message);
+      printf("%.*s\n", (drop::s32)diag.position_length,
+             code.ptr + diag.position);
+
+      drop_trap();
+    }
+
+    ast.deinit();
+  }
 
   ir1.dump();
 
   ir1.deinit();
+
+  printf("%.*s", 15, code.ptr + 106);
 }

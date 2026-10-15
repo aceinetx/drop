@@ -72,6 +72,8 @@ extern string instruction_type_names[];
 union InstructionData {
   // Index of strings field of IR1
   usize string;
+
+  s64 number;
 };
 
 struct Instruction {
@@ -94,6 +96,7 @@ struct IR1 {
 struct IR1GenDiagnostics {
   u8 message[512];
   usize position;
+  usize position_length;
 };
 
 struct IR1Gen {
@@ -101,9 +104,7 @@ struct IR1Gen {
   AST *ast;
 
   static IR1Gen init(AST *ast);
-
-  void gen_node(AST *ast);
 };
 
-IR1 generate_ir1(AST *ast);
+bool generate_ir1(AST *ast, IR1 *ir1, IR1GenDiagnostics *diag);
 } // namespace drop

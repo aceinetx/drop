@@ -30,9 +30,18 @@ void drop::IR1::dump() {
     const auto inst = &insts.items[i];
     const auto name = instruction_type_names[(usize)inst->tag];
 
-    printf("- " sv_fmt "\n", sv_arg(name));
+    printf("- " sv_fmt " ", sv_arg(name));
+
+    switch (inst->tag) {
+    case InstructionType::Number:
+      printf("%ld", inst->data.number);
+      break;
+    default:
+      break;
+    }
+
+    putchar('\n');
   }
-  //
 }
 
 drop::IR1Gen drop::IR1Gen::init(AST *ast) {
@@ -42,7 +51,16 @@ drop::IR1Gen drop::IR1Gen::init(AST *ast) {
   };
 }
 
-drop::IR1 drop::generate_ir1(AST *ast) {
+static bool gen_node(drop::IR1Gen *gen, drop::ASTNode *node,
+                     drop::IR1GenDiagnostics *diag) {
+  return true;
+}
+
+bool drop::generate_ir1(AST *ast, IR1 *ir1, IR1GenDiagnostics *diag) {
   IR1Gen gen = IR1Gen::init(ast);
-  return gen.ir;
+  if (!gen_node(&gen, &gen.ast->nodes.items[gen.ast->root], diag)) {
+    return false;
+  }
+  *ir1 = gen.ir;
+  return true;
 }

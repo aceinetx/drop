@@ -77,6 +77,7 @@ struct AST;
 struct ASTNode {
   ASTNodeType type;
   ASTNodeData data;
+  usize position, length;
 
   void dump(AST *ast, usize indent);
 };
@@ -97,8 +98,8 @@ struct AST {
 };
 
 struct ParserDiagnostics {
-  usize position;
   u8 message[512];
+  usize position;
 };
 
 struct Parser {

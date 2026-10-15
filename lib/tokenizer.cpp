@@ -132,7 +132,7 @@ drop::Token drop::Tokenizer::_next() {
       Token token = {TokenType::String,
                      {tokens.strings.items.len - 1},
                      start - 1,
-                     len + 1};
+                     len + 2};
       return token;
     } else if (isspace(c)) {
       ch();

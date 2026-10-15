@@ -17,7 +17,7 @@ void drop::ASTNode::dump(AST *ast, usize indent) {
   print_indent(indent);
 
   auto name = ast_node_type_names[(usize)type];
-  printf("- " sv_fmt "\n", sv_arg(name));
+  printf("- " sv_fmt " %zu %zu\n", sv_arg(name), position, length);
 
   switch (type) {
   case ASTNodeType::Root: {
@@ -177,19 +177,23 @@ static usize parse_type(Parser *self, ParserDiagnostics *diagnostics) {
   const auto first = next(self);
   switch (first.tag) {
   case TokenType::Identifier: {
-    ASTNode node = {ASTNodeType::TypeRef, {0}};
+    ASTNode node = {ASTNodeType::TypeRef, {0}, first.position, first.length};
     auto string = self->tokens->strings.items[first.data.string].dupe();
     node.data.string = self->ast.strings.append(string);
     return self->ast.nodes.append(node);
   } break;
   case TokenType::Star: {
-    ASTNode node = {ASTNodeType::TypePtr, {0}};
+    ASTNode node = {ASTNodeType::TypePtr, {0}, first.position, first.length};
     node.data.node = parse_type(self, diagnostics);
+    auto underlying = &self->ast.nodes.items[node.data.node];
+    node.length = underlying->position - node.position + underlying->length;
     return self->ast.nodes.append(node);
   } break;
   case TokenType::Const: {
-    ASTNode node = {ASTNodeType::TypeConst, {0}};
+    ASTNode node = {ASTNodeType::TypeConst, {0}, first.position, first.length};
     node.data.node = parse_type(self, diagnostics);
+    auto underlying = &self->ast.nodes.items[node.data.node];
+    node.length = underlying->position - node.position + underlying->length;
     return self->ast.nodes.append(node);
   } break;
   default: {
@@ -207,6 +211,8 @@ static usize parse_primary(Parser *self, ParserDiagnostics *diagnostics) {
   const auto first = next(self);
 
   ASTNode node;
+  node.position = first.position;
+  node.length = first.length;
 
   switch (first.tag) {
   case TokenType::Identifier:
@@ -292,14 +298,16 @@ static usize parse_expr(Parser *self, ParserDiagnostics *diagnostics) {
 }
 
 static usize parse_statement(Parser *self, ParserDiagnostics *diagnostics) {
-  if (!expect(self, diagnostics, TokenType::Return))
+  auto return_token = expect(self, diagnostics, TokenType::Return);
+  if (!return_token)
     return 0;
 
   auto expr = parse_expr(self, diagnostics);
   if (!expr)
     return 0;
 
-  auto node = ASTNode{ASTNodeType::Return, {expr}};
+  auto node = ASTNode{
+      ASTNodeType::Return, {expr}, return_token.position, return_token.length};
 
   if (!expect(self, diagnostics, TokenType::Semicolon))
     return 0;
@@ -308,10 +316,11 @@ static usize parse_statement(Parser *self, ParserDiagnostics *diagnostics) {
 }
 
 static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
-  if (!expect(self, diagnostics, TokenType::Lbrace))
+  auto lbrace_token = expect(self, diagnostics, TokenType::Lbrace);
+  if (!lbrace_token)
     return 0;
 
-  ASTNode node = {ASTNodeType::Block, {0}};
+  ASTNode node = {ASTNodeType::Block, {0}, lbrace_token.position, 0xaa};
 
   auto list = self->ast.node_arrays.append(List<usize>::init());
   node.data.node_array = list;
@@ -321,8 +330,11 @@ static usize parse_block(Parser *self, ParserDiagnostics *diagnostics) {
     return 0;
   self->ast.node_arrays.items[node.data.node_array].append(stmt);
 
-  if (!expect(self, diagnostics, TokenType::Rbrace))
+  auto rbrace_token = expect(self, diagnostics, TokenType::Rbrace);
+  if (!rbrace_token)
     return 0;
+
+  node.length = rbrace_token.position - lbrace_token.position;
 
   return self->ast.nodes.append(node);
 }
@@ -372,7 +384,7 @@ static bool parse_func_args(Parser *self, ParserDiagnostics *diagnostics,
 
 static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
   const auto first = next(self);
-  ASTNode node = {ASTNodeType::FuncDef, {0}};
+  ASTNode node = {ASTNodeType::FuncDef, {0}, first.position, 0xaa};
   memset(&node.data, 0, sizeof node.data);
   node.data.funcdef = self->ast.funcdefs.append({});
 
@@ -416,6 +428,8 @@ static usize parse_func(Parser *self, ParserDiagnostics *diagnostics) {
       return 0;
   }
 
+  node.length = peek(self).position - node.position;
+
   usize node_index = self->ast.nodes.append(node);
   return node_index;
 }
@@ -429,7 +443,7 @@ bool drop::Parser::parse(ParserDiagnostics *diagnostics) {
   memset(diagnostics, 0, sizeof *diagnostics);
 
   usize i = ast.nodes.append(
-      {ASTNodeType::Root, {ast.node_arrays.append(List<usize>::init())}});
+      {ASTNodeType::Root, {ast.node_arrays.append(List<usize>::init())}, 0, 0});
   ast.root = i;
 
   usize list_id = ast.nodes.items[ast.root].data.node_array;
