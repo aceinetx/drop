@@ -21,7 +21,6 @@
 
 #ifndef ARENA_H_
 #define ARENA_H_
-namespace drop {
 #include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -31,6 +30,7 @@ namespace drop {
 
 #define ARENA_ASSERT assert
 
+namespace drop {
 typedef struct Region Region;
 
 struct Region {
@@ -74,6 +74,7 @@ void arena_reset(Arena *a);
 void arena_rewind(Arena *a, Arena_Mark m);
 void arena_free(Arena *a);
 void arena_trim(Arena *a);
+} // namespace drop
 
 #endif // ARENA_H_
 
@@ -84,11 +85,11 @@ void arena_trim(Arena *a);
 // TODO: instead of accepting specific capacity new_region() should accept the
 // size of the object we want to fit into the region It should be up to
 // new_region() to decide the actual capacity to allocate
-static Region *new_region(size_t capacity) {
-  size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+static drop::Region *new_region(size_t capacity) {
+  size_t size_bytes = sizeof(drop::Region) + sizeof(uintptr_t) * capacity;
   // TODO: it would be nice if we could guarantee that the regions are allocated
   // by ARENA_BACKEND_LIBC_MALLOC are page aligned
-  Region *r = (Region *)malloc(size_bytes);
+  auto *r = (drop::Region *)malloc(size_bytes);
   ARENA_ASSERT(r); // TODO: since ARENA_ASSERT is disableable go through all the
   // places where we use it to check for failed memory
   // allocation and return with NULL there.
@@ -98,7 +99,7 @@ static Region *new_region(size_t capacity) {
   return r;
 }
 
-static void free_region(Region *r) { free(r); }
+static void free_region(drop::Region *r) { free(r); }
 
 // TODO: add debug statistic collection mode for arena
 // Should collect things like:
@@ -106,13 +107,13 @@ static void free_region(Region *r) { free(r); }
 // - How many times existing region was skipped
 // - How many times allocation exceeded ARENA_REGION_DEFAULT_CAPACITY
 
-Arena Arena::init() {
+drop::Arena drop::Arena::init() {
   Arena self;
   memset(&self, 0, sizeof self);
   return self;
 }
 
-void Arena::deinit() {
+void drop::Arena::deinit() {
   Region *r = this->begin;
   while (r) {
     Region *r0 = r;
@@ -123,7 +124,7 @@ void Arena::deinit() {
   this->end = NULL;
 }
 
-void *Arena::alloc(size_t size_bytes) {
+void *drop::Arena::alloc(size_t size_bytes) {
   size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
   if (this->end == NULL) {
@@ -155,7 +156,7 @@ void *Arena::alloc(size_t size_bytes) {
   return result;
 }
 
-void *Arena::realloc(void *oldptr, size_t oldsz, size_t newsz) {
+void *drop::Arena::realloc(void *oldptr, size_t oldsz, size_t newsz) {
   if (newsz <= oldsz)
     return oldptr;
   void *newptr = this->alloc(newsz);
@@ -167,7 +168,7 @@ void *Arena::realloc(void *oldptr, size_t oldsz, size_t newsz) {
   return newptr;
 }
 
-char *Arena::strdup(const char *cstr) {
+char *drop::Arena::strdup(const char *cstr) {
   size_t n = strlen(cstr);
   char *dup = (char *)this->alloc(n + 1);
   memcpy(dup, cstr, n);
@@ -175,11 +176,11 @@ char *Arena::strdup(const char *cstr) {
   return dup;
 }
 
-void *Arena::memdup(const void *data, size_t size) {
+void *drop::Arena::memdup(const void *data, size_t size) {
   return memcpy(this->alloc(size), data, size);
 }
 
-Arena_Mark Arena::snapshot() {
+drop::Arena_Mark drop::Arena::snapshot() {
   Arena_Mark m;
   if (this->end == NULL) { // snapshot of uninitialized arena
     ARENA_ASSERT(this->begin == NULL);
@@ -193,7 +194,7 @@ Arena_Mark Arena::snapshot() {
   return m;
 }
 
-void Arena::reset() {
+void drop::Arena::reset() {
   for (Region *r = this->begin; r != NULL; r = r->next) {
     r->count = 0;
   }
@@ -201,7 +202,7 @@ void Arena::reset() {
   this->end = this->begin;
 }
 
-void Arena::rewind(Arena_Mark m) {
+void drop::Arena::rewind(Arena_Mark m) {
   if (m.region == NULL) { // snapshot of uninitialized arena
     this->reset();        // leave allocation
     return;
@@ -215,7 +216,7 @@ void Arena::rewind(Arena_Mark m) {
   this->end = m.region;
 }
 
-void Arena::trim() {
+void drop::Arena::trim() {
   Region *r = this->end->next;
   while (r) {
     Region *r0 = r;
@@ -223,6 +224,5 @@ void Arena::trim() {
     free_region(r0);
   }
   this->end->next = NULL;
-}
 }
 #endif // ARENA_IMPLEMENTATION

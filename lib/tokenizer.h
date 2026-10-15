@@ -1,4 +1,5 @@
 #pragma once
+#include "arena.h"
 #include "list.h"
 #include "str.h"
 
@@ -38,7 +39,6 @@ enum class TokenType : u8 { XTokenTypes };
 extern string token_type_names[];
 
 union TokenData {
-  // Index of strings field of Tokens
   usize string;
 
   s64 number;
