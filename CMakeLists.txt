@@ -51,7 +51,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		if(NOT (file MATCHES "test_"))
 			continue()
 		endif()
-		
+
 		string(SHA1 file_hash ${file})
 		string(SUBSTRING ${file_hash} 0 8 DROPTEST)
 

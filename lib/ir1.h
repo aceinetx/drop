@@ -1,5 +1,6 @@
 #pragma once
 #include "base.h"
+#include "hash_map.h"
 #include "list.h"
 #include "parser.h"
 #include "str.h"
@@ -81,8 +82,32 @@ struct Instruction {
   InstructionData data;
 };
 
+struct IR1FuncDefArg {
+  // Index of strings field of IR1
+  string name;
+
+  // Index of insts field of IR1
+  usize insts;
+};
+
+struct IR1FuncDef {
+  bool is_extern;
+
+  // Index of strings field of IR1
+  usize name;
+
+  List<IR1FuncDefArg> args;
+
+  // Index of lists_of_insts field of IR1
+  usize body;
+};
+
 struct IR1 {
   List<Instruction> insts;
+
+  List<List<usize>> lists_of_insts;
+
+  List<IR1FuncDef> funcdefs;
 
   List<string> strings;
 
@@ -99,9 +124,15 @@ struct IR1GenDiagnostics {
   usize position_length;
 };
 
+using Scope = HashMap<string, usize, slice_hash, slice_compare>;
+struct IR1FunctionContext {
+  List<Scope> scopes;
+};
+
 struct IR1Gen {
   IR1 ir;
   AST *ast;
+  List<Scope> scopes;
 
   static IR1Gen init(AST *ast);
 };
