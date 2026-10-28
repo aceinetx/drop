@@ -1,7 +1,3 @@
-use std::path::PathBuf;
-
-use dir::types::TypeId;
-
 #[derive(Debug)]
 pub enum BinopKind {
     Add,
@@ -11,23 +7,26 @@ pub enum BinopKind {
 }
 
 #[derive(Debug)]
+pub struct NodeFuncDef {
+    pub is_extern: bool,
+    pub name: String,
+    pub args: Vec<(String, Node)>,
+    pub return_type: Box<Node>,
+    pub body: Option<Box<Node>>,
+}
+
+#[derive(Debug)]
 pub enum NodeKind {
     None,
     Root(Vec<Node>),
-    FunctionDef {
-        is_extern: bool,
-        name: String,
-        args: Vec<(String, Node)>,
-        return_type: Box<Node>,
-        body: Option<Box<Node>>,
-    },
+    FunctionDef(NodeFuncDef),
     TypeRef(String),
     TypePtr(Box<Node>),
     TypeConst(Box<Node>),
     TypeSlice(Box<Node>),
     Block(Vec<Node>),
     Number(i64),
-    Return(Box<Node>),
+    Return(Option<Box<Node>>),
     VarRef(String),
     String(String),
     Binop(Box<Node>, BinopKind, Box<Node>),
@@ -38,15 +37,11 @@ pub enum NodeKind {
 #[derive(Debug)]
 pub struct Node {
     pub node: NodeKind,
-    pub resolved_type: Option<TypeId>,
 }
 
 impl Node {
     pub fn new(node: NodeKind) -> Self {
-        Self {
-            node,
-            resolved_type: None,
-        }
+        Self { node }
     }
 }
 

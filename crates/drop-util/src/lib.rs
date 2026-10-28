@@ -16,3 +16,10 @@ pub fn expand_path_traversal(path: &Path) -> PathBuf {
     }
     new_path
 }
+
+#[macro_export]
+macro_rules! strerr {
+    ($x: expr) => {
+        ($x).map_err(|e| e.to_string())
+    };
+}

@@ -1,5 +1,13 @@
 use crate::token::*;
 
+fn is_identchar(c: char) -> bool {
+    c.is_alphanumeric() || c == '_'
+}
+
+fn is_identchar_begin(c: char) -> bool {
+    c.is_alphabetic() || c == '_'
+}
+
 struct Lexer<'a> {
     code: &'a str,
     pos: usize,
@@ -30,13 +38,13 @@ impl<'a> Lexer<'a> {
             c = self.ch();
             c != 0 as char
         } {
-            if c.is_alphabetic() {
+            if is_identchar_begin(c) {
                 let begin = self.pos - 1;
                 let mut end = self.pos;
 
                 while {
                     c = self.ch();
-                    c.is_alphanumeric()
+                    is_identchar(c)
                 } {
                     end = self.pos;
                 }

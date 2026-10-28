@@ -1,9 +1,9 @@
 use std::{
+    fmt::{Debug, Display, Pointer},
     marker::PhantomData,
     ops::{Index, IndexMut},
 };
 
-#[derive(Debug)]
 pub struct TableId<T> {
     id: usize,
     __phantom_data: PhantomData<T>,
@@ -36,7 +36,18 @@ impl<T> PartialEq for TableId<T> {
     }
 }
 
-#[derive(Debug)]
+impl<T: Display> Display for TableId<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self.id, f)
+    }
+}
+
+impl<T: Debug> Debug for TableId<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(&self.id, f)
+    }
+}
+
 pub struct Table<T> {
     items: Vec<T>,
 }
@@ -74,5 +85,31 @@ impl<T> Index<TableId<T>> for Table<T> {
 impl<T> IndexMut<TableId<T>> for Table<T> {
     fn index_mut(&mut self, index: TableId<T>) -> &mut Self::Output {
         &mut self.items[index.get()]
+    }
+}
+
+impl<T: Display> Display for Table<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{{")?;
+        for (i, it) in self.items.iter().enumerate() {
+            write!(f, "{} = ", i)?;
+            Display::fmt(it, f)?;
+            write!(f, ", ")?;
+        }
+        write!(f, "}}")?;
+        Ok(())
+    }
+}
+
+impl<T: Debug> Debug for Table<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{{ ")?;
+        for (i, it) in self.items.iter().enumerate() {
+            write!(f, "{}: ", i)?;
+            Debug::fmt(it, f)?;
+            write!(f, ", ")?;
+        }
+        write!(f, "}}")?;
+        Ok(())
     }
 }

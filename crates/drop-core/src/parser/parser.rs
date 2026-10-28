@@ -1,5 +1,5 @@
 use crate::{
-    parser::{BinopKind, Node, NodeKind, ParserResult},
+    parser::{BinopKind, Node, NodeFuncDef, NodeKind, ParserResult},
     token::Token,
 };
 
@@ -70,7 +70,7 @@ impl<'a> Parser<'a> {
             Token::Return => {
                 let node = self.parse_expr()?;
                 expect_token!(self, Token::Semicolon)?;
-                Ok(Node::new(NodeKind::Return(Box::new(node))))
+                Ok(Node::new(NodeKind::Return(Some(Box::new(node)))))
             }
             token => panic!("{:?}", token),
         }
@@ -148,13 +148,13 @@ impl<'a> Parser<'a> {
             Some(Box::new(self.parse_block()?))
         };
 
-        let kind = NodeKind::FunctionDef {
+        let kind = NodeKind::FunctionDef(NodeFuncDef {
             is_extern,
             name,
             args,
             return_type,
             body,
-        };
+        });
 
         Ok(Node::new(kind))
     }
