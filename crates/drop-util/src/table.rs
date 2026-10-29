@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Debug, Display, Pointer},
+    fmt::{Debug, Display},
     marker::PhantomData,
     ops::{Index, IndexMut},
 };
@@ -88,28 +88,14 @@ impl<T> IndexMut<TableId<T>> for Table<T> {
     }
 }
 
-impl<T: Display> Display for Table<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{")?;
-        for (i, it) in self.items.iter().enumerate() {
-            write!(f, "{} = ", i)?;
-            Display::fmt(it, f)?;
-            write!(f, ", ")?;
-        }
-        write!(f, "}}")?;
-        Ok(())
-    }
-}
-
 impl<T: Debug> Debug for Table<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ ")?;
+        let mut map = f.debug_map();
+
         for (i, it) in self.items.iter().enumerate() {
-            write!(f, "{}: ", i)?;
-            Debug::fmt(it, f)?;
-            write!(f, ", ")?;
+            map.entry(&i, it);
         }
-        write!(f, "}}")?;
-        Ok(())
+
+        map.finish()
     }
 }

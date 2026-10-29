@@ -1,11 +1,14 @@
 use crate::ir1::instruction::*;
-use crate::parser::{Node, NodeFuncDef, NodeKind};
+use crate::parser::{BinopKind, Node, NodeFuncDef, NodeKind};
 use std::collections::HashMap;
 
+type Scope = HashMap<String, InstructionId>;
+
+#[derive(Debug)]
 pub struct IR1 {
     pub ast: Vec<Node>,
     pub instructions: InstructionTable,
-    pub scopes: Vec<HashMap<String, InstructionId>>,
+    pub scopes: Vec<Scope>,
 }
 
 impl IR1 {
@@ -91,20 +94,31 @@ impl IR1 {
         let return_ty = self.generate_type(&funcdef.return_type.node);
         let return_ty_id = self.instructions.insert(return_ty);
 
+        let mut scope = Scope::new();
+        for (i, arg) in args.iter().enumerate() {
+            let alloca_inst = Instruction::Argument(i);
+            let alloca_inst = self.instructions.insert(alloca_inst);
+
+            scope.insert(arg.name.clone(), alloca_inst);
+        }
+
+        self.scopes.push(scope);
+        let body = self
+            .generate_generic_node(
+                &funcdef
+                    .body
+                    .as_ref()
+                    .expect("non extern function is expected to have a body")
+                    .node,
+            )
+            .expect("generate_generic_node is expected to emit an instruction");
+        self.scopes.pop();
+
         let inst = Instruction::FuncDef(FuncDef {
             is_extern: true,
             name: funcdef.name.clone(),
             args,
-            body: Some(
-                self.generate_generic_node(
-                    &funcdef
-                        .body
-                        .as_ref()
-                        .expect("non extern function is expected to have a body")
-                        .node,
-                )
-                .expect("generate_generic_node is expected to emit an instruction"),
-            ),
+            body: Some(body),
             return_type: return_ty_id,
         });
 
@@ -145,10 +159,17 @@ impl IR1 {
 
                 Some(self.instructions.insert(inst))
             }
-            NodeKind::VarRef(name) => Some(
-                self.lookup_variable(name)
-                    .expect("TODO: real error messages for undeclared variables"),
-            ),
+            NodeKind::VarRef(name) => {
+                let alloca_inst = self.lookup_variable(name).expect(&format!(
+                    "TODO: real error messages for undeclared variables {}",
+                    name
+                ));
+
+                let inst = Instruction::Load(alloca_inst);
+                let inst_id = self.instructions.insert(inst);
+
+                Some(inst_id)
+            }
             NodeKind::Call(function_value, node_args) => {
                 let function_ref = self.generate_generic_node(&function_value.node).unwrap();
 
@@ -163,6 +184,19 @@ impl IR1 {
             }
             NodeKind::String(s) => Some(self.instructions.insert(Instruction::String(s.clone()))),
             NodeKind::Number(n) => Some(self.instructions.insert(Instruction::Number(*n))),
+            NodeKind::Binop(lhs, op, rhs) => {
+                let lhs_id = self.generate_generic_node(&lhs.node).unwrap();
+                let rhs_id = self.generate_generic_node(&rhs.node).unwrap();
+
+                let inst = match op {
+                    BinopKind::Add => Instruction::Add(lhs_id, rhs_id),
+                    BinopKind::Sub => Instruction::Sub(lhs_id, rhs_id),
+                    BinopKind::Mul => Instruction::Mul(lhs_id, rhs_id),
+                    BinopKind::Div => Instruction::Div(lhs_id, rhs_id),
+                };
+
+                Some(self.instructions.insert(inst))
+            }
             other => todo!("{:#?}", other),
         }
     }
@@ -182,17 +216,17 @@ impl IR1 {
             }
         }
 
-        eprintln!("==================== INSTRUCTIONS ==================== ");
-        eprintln!("{:#?}", self.instructions);
-        eprintln!("==================== SCOPES ==================== ");
-        eprintln!("{:#?}", self.scopes);
+        // eprintln!("==================== INSTRUCTIONS ==================== ");
+        // eprintln!("{:#?}", self.instructions);
+        // eprintln!("==================== SCOPES ==================== ");
+        // eprintln!("{:#?}", self.scopes);
 
         for node in ast.iter() {
             self.generate_generic_node(&node.node);
         }
 
-        eprintln!("==================== INSTRUCTIONS ==================== ");
-        eprintln!("{:#?}", self.instructions);
+        // eprintln!("==================== INSTRUCTIONS ==================== ");
+        // eprintln!("{:#?}", self.instructions);
 
         self.ast = ast;
     }

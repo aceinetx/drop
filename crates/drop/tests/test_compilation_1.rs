@@ -1,4 +1,4 @@
-use drop_core::{ir1::ir1_gen, lexer::tokenize, parser::parse};
+use drop_core::{ir1::ir1_gen, ir2::ir2_gen, lexer::tokenize, parser::parse};
 
 #[test]
 fn test_compilation_1() {
@@ -11,6 +11,10 @@ fn main () i32 {
   return puts("Hello, World!");
 }
 
+fn add (a: i32, b: i32) i32 {
+  return a + b;
+}
+
 extern fn puts (s: *const u8) i32;
 "#;
 
@@ -19,4 +23,6 @@ extern fn puts (s: *const u8) i32;
     eprintln!("{:#?}", root);
 
     let ir1 = ir1_gen(root);
+    let ir2 = ir2_gen(ir1);
+    eprintln!("{:#?}", ir2);
 }
